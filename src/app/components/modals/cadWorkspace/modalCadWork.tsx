@@ -1,25 +1,28 @@
-import React, { useState } from "react";
-import { handleSaveWorkspace } from "../../../controllers/workspaceController";
+import React, { Dispatch, SetStateAction, useState } from "react";
+import { handleSaveWorkspace } from "../../../../../controllers/workspaceController";
 import { useSession } from "next-auth/react";
+import { workspace } from "../../navbar";
 
-interface ModalCadWorkProps {
+type ModalCadWorkProps = {
   isOpen: boolean;
   setModalOpen: () => void;
-  
-
-}
+  areaDeTrabalho: workspace[];
+  setWorkspace: Dispatch<SetStateAction<workspace[]>>;
+};
 
 const ModalCadWork: React.FC<ModalCadWorkProps> = ({
   isOpen,
   setModalOpen,
-
+  areaDeTrabalho,
+  setWorkspace,
 }) => {
-  const [workspace, setWorkspace] = useState({
+  const [newWorkspace, setNewWorkspace] = useState<workspace>({
     nome: "",
+    email: "",
   });
 
   const handleChange = (key: string, value: string) => {
-    setWorkspace({ ...workspace, [key]: value });
+    setNewWorkspace({ ...newWorkspace, [key]: value });
   };
 
   const { data: session } = useSession();
@@ -32,11 +35,14 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ nome: workspace.nome, email: session?.user?.email }),
+        body: JSON.stringify({
+          nome: newWorkspace.nome,
+          email: session?.user?.email,
+        }),
       });
       alert("Cadastro realizado com sucesso!");
       setModalOpen();
-      setWorkspace({nome: ""})
+      setWorkspace([...areaDeTrabalho, newWorkspace]);
 
       if (!response.ok) {
         throw new Error("Ocorreu um erro ao criar a workspace.");
@@ -63,14 +69,17 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
                 type="text"
                 id="nome"
                 className="formControl text-black w-full px-4 py-2 rounded border focus:outline-none focus:border-gray-400"
-                value={workspace.nome}
+                value={newWorkspace.nome}
                 onChange={(e) => handleChange("nome", e.target.value)}
               />
             </div>
             <div className="flex justify-center">
               <button
-              type="button"
-                onClick={() => {setModalOpen(); setWorkspace({nome: ""})}}
+                type="button"
+                onClick={() => {
+                  setModalOpen();
+                  setNewWorkspace({ nome: "", email: "" });
+                }}
                 className="bg-red-500 text-white px-4 py-2 rounded mr-2"
               >
                 Cancelar

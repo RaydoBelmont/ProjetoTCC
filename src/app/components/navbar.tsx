@@ -4,27 +4,29 @@ import SigninButton from "./SigninButton";
 import { useSession } from "next-auth/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import { BotaoModalWorkspace } from "./btnModal";
+import BotaoModalWorkspace from "./botoes_modal/btnModalCadWork";
 import { useClickAway } from "react-use";
 
-interface workspace {
-  id: number,
-  nome: string
+
+export interface workspace {
+  id?: number;
+  nome: string;
+  email: string;
 }
+
+
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [showOptions, setShowOptions] = useState(false); // Estado para controlar se as opções estão visíveis
   const refBtnWorkspace = useRef(null);
   const [workspaces, setWorkspaces] = useState<workspace[]>([]);
-  const [teste, setTeste] = useState(false);
 
   useClickAway(refBtnWorkspace, () => {
     if (showOptions) {
       setShowOptions(false);
     }
   });
-
 
   const listaWorkspaces = async (email: string) => {
     try {
@@ -47,8 +49,6 @@ export default function Navbar() {
     }
   }, [session]);
 
-
-
   const botaoWorkspaces = useCallback(
     (chave?: any) => (
       <div className="relative flex " key={chave} ref={refBtnWorkspace}>
@@ -66,15 +66,19 @@ export default function Navbar() {
         {showOptions && ( // Mostra as opções apenas se showOptions for verdadeiro
           <div className="absolute right-0 top-0 mt-10 bg-gray-700 py-2 px-3 rounded-md shadow-2xl">
             <div className="text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700">
-              <BotaoModalWorkspace />
+              <BotaoModalWorkspace
+                areaDeTrabalho={workspaces}
+                setWorkspace={setWorkspaces}
+              />
             </div>
             {workspaces.map((workspace, index) => (
               <div
                 key={index}
                 className=" text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700"
               >
-                
-                <button className="w-full select-none py-2 px-3">{workspace.nome}</button>
+                <button className="w-full select-none py-2 px-3">
+                  {workspace.nome}
+                </button>
               </div>
             ))}
           </div>

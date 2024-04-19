@@ -1,6 +1,6 @@
 "use client";
 import { ChangeEvent, FormEvent, useState } from "react";
-import {BtnModalClientes} from "../components/btnModal";
+import BtnModalClientes  from "../components/botoes_modal/btnModalCadCli";
 
 interface Cliente {
   id: number;
