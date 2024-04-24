@@ -7,20 +7,28 @@ import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import BotaoModalWorkspace from "./botoes_modal/btnModalCadWork";
 import { useClickAway } from "react-use";
 
-
 export interface workspace {
-  id?: number;
+  id: number;
   nome: string;
   email: string;
 }
 
-
-
-export default function Navbar() {
+const Navbar: React.FC = () => {
   const { data: session } = useSession();
   const [showOptions, setShowOptions] = useState(false); // Estado para controlar se as opções estão visíveis
   const refBtnWorkspace = useRef(null);
   const [workspaces, setWorkspaces] = useState<workspace[]>([]);
+
+  const redirecionar = (id: number, nome: string) => {
+    if (typeof window !== 'undefined') {
+    const idToString = id.toString();
+    const email = session?.user?.email || 'semEmail'
+    localStorage.setItem("email", email);
+    localStorage.setItem("workspaceId", idToString);
+    localStorage.setItem("workspaceName", nome);
+    window.location.href = "/workspace";
+  };
+}
 
   useClickAway(refBtnWorkspace, () => {
     if (showOptions) {
@@ -76,7 +84,12 @@ export default function Navbar() {
                 key={index}
                 className=" text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700"
               >
-                <button className="w-full select-none py-2 px-3">
+                <button
+                  className="w-full select-none py-2 px-3"
+                  onClick={() =>
+                    redirecionar(workspace.id, workspace.nome)
+                  }
+                >
                   {workspace.nome}
                 </button>
               </div>
@@ -122,4 +135,6 @@ export default function Navbar() {
       </div>
     </nav>
   );
-}
+};
+
+export default Navbar;

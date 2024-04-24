@@ -17,6 +17,7 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
   setWorkspace,
 }) => {
   const [newWorkspace, setNewWorkspace] = useState<workspace>({
+    id: 0,
     nome: "",
     email: "",
   });
@@ -78,7 +79,7 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
                 type="button"
                 onClick={() => {
                   setModalOpen();
-                  setNewWorkspace({ nome: "", email: "" });
+                  setNewWorkspace({ id: 0 , nome: "", email: "" });
                 }}
                 className="bg-red-500 text-white px-4 py-2 rounded mr-2"
               >

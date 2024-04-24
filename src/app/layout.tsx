@@ -4,7 +4,6 @@ import "./globals.css";
 import Navbar from "./components/navbar";
 import Providers from "./components/Providers";
 const inter = Inter({ subsets: ["latin"] });
-import { PrimeReactProvider, PrimeReactContext } from 'primereact/api';
 
 export const metadata: Metadata = {
   title: "Create Next App",
