@@ -1,6 +1,6 @@
 import { Dispatch, SetStateAction, useState } from "react";
 import ModalCadWork from "../modals/cadWorkspace/modalCadWork";
-import { workspace } from "../navbar";
+import { workspace } from "../navbar/navbar";
 
 type Props = {
   areaDeTrabalho: workspace[];

@@ -1,38 +1,49 @@
 "use client";
 import { useSession } from "next-auth/react";
 import { useEffect, useState } from "react";
+import Loading from "./Loading";
+import Navbar from "./navbar/navbar";
+import Quadro from "./quadros/quadro";
+import Setor from "./Setores/setor";
 
 const Workspace: React.FC = () => {
   const { data: session } = useSession();
-
-  
-  const email = localStorage.getItem("email");
-  const workspaceId = localStorage.getItem("workspaceId");
-  const workspaceName = localStorage.getItem("workspaceName");
-  const [verificaEmail, setVerificaEmail] = useState<boolean>(false);
-  const [listaQuadros, setListaQuadros] = useState<[]>([]);
-
-  const listarQuadros = async () => {
-    const result = await fetch;
-  };
+  const [email, setEmail] = useState<string | null>(null);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [workspaceName, setWorkspaceName] = useState<string | null>(null);
+  const [verificaEmail, setVerificaEmail] = useState<boolean | null>(null);
 
   useEffect(() => {
+    const storedEmail = sessionStorage.getItem("email");
+    const storedWorkspaceId = sessionStorage.getItem("workspaceId");
+    const storedWorkspaceName = sessionStorage.getItem("workspaceName");
+    setEmail(storedEmail);
+    setWorkspaceId(storedWorkspaceId);
+    setWorkspaceName(storedWorkspaceName);
+
     const emailUser = session?.user?.email;
     if (session && session.user) {
-      if (emailUser === email) {
+      if (emailUser === storedEmail) {
         setVerificaEmail(true);
-      } else setVerificaEmail(false);
+      } else {
+        setVerificaEmail(false);
+      }
     }
   }, [session]);
 
-  if (verificaEmail) {
+  const setores = [{id:1 , nome: "Setor Suporte"}, {id:2, nome: "Setor Dev"}]
+
+  if (verificaEmail === null) {
+    // Aguardando verificação de email
+    return <Loading />;
+  } else if (verificaEmail) {
     return (
-      <div className="flex flex-col h-screen w-full">
-        <header className="bg-gray-600 text-white p-4 flex items-center justify-between h-10"></header>
-        <h1>Bem vindo {email}</h1>
-        <h2>Workspace: {workspaceName}</h2>
-        <h2>WorkspaceID: {workspaceId}</h2>
-      </div>
+      <main className=" flex flex-col w-full">
+        <Navbar nome={workspaceName || ""} idWorkspace={workspaceId || ""} />
+        {/* <Quadro idWorkspace={workspaceId || ""} /> */}
+        <Setor Setor={setores} />
+
+      </main>
     );
   } else {
     return (

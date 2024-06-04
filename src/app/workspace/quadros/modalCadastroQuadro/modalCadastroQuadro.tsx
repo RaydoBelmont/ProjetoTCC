@@ -1,59 +1,44 @@
 import React, { Dispatch, SetStateAction, useState } from "react";
-import { handleSaveWorkspace } from "../../../../../controllers/workspaceController";
 import { useSession } from "next-auth/react";
-import { workspace } from "../../navbar/navbar";
-import Workspace from "@/app/workspace/page";
 
-type ModalCadWorkProps = {
+type ModalCadastroQuadros = {
   isOpen: boolean;
   setModalOpen: () => void;
-  areaDeTrabalho: workspace[];
-  setWorkspace: Dispatch<SetStateAction<workspace[]>>;
+  idWorkspace: string;
 };
 
-const ModalCadWork: React.FC<ModalCadWorkProps> = ({
-  isOpen,
-  setModalOpen,
-  areaDeTrabalho,
-  setWorkspace,
-}) => {
-  const [newWorkspace, setNewWorkspace] = useState({
+type Quadro = {
+  nome: string;
+};
+
+export default function ModalCadQuadro(props: ModalCadastroQuadros) {
+  const [novoQuadro, setNovoQuadro] = useState<Quadro>({
     nome: "",
   });
 
-  const handleChange = (key: string, value: string) => {
-    setNewWorkspace({ ...newWorkspace, [key]: value });
-    console.log(newWorkspace);
+  const salvarNovoQuadro = (key: string, value: string) => {
+    setNovoQuadro({ ...novoQuadro, [key]: value });
   };
-
-  const { data: session } = useSession();
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
-      const response = await fetch("/api/workspace", {
+      const response = await fetch("/api/quadros", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          nome: newWorkspace.nome,
-          email: session?.user?.email,
+          nome: novoQuadro.nome,
+          idWorkspace: props.idWorkspace,
         }),
       });
-
-      if(response.ok){
-        const dados = await response.json();
-        const novoWorkspace = {
-          id: dados.id,
-          nome: dados.nome,
-          email: session?.user?.email || "",
-        };
-        setWorkspace([...areaDeTrabalho, novoWorkspace]);
-        alert("Cadastro realizado com sucesso!");
-        setModalOpen();
-        
-      }else if(!response.ok) {
+      alert("Cadastro realizado com sucesso!");
+      props.setModalOpen();
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+      if (!response.ok) {
         throw new Error("Ocorreu um erro ao criar a workspace.");
       }
     } catch (error) {
@@ -62,12 +47,12 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
     }
   };
 
-  if (isOpen) {
+  if (props.isOpen) {
     return (
       <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-gray-900 bg-opacity-50">
         <div className="bg-gray-800 p-8 rounded-lg border border-gray-200 animate-fade-in max-w-screen-md w-full">
           <h1 className="text-sm font-semibold mb-4 text-white text-center">
-            Nova Workspace
+            Novo Quadro
           </h1>
           <form onSubmit={handleSubmit}>
             <div className="mb-4">
@@ -78,16 +63,16 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
                 type="text"
                 id="nome"
                 className="formControl text-black w-full px-4 py-2 rounded border focus:outline-none focus:border-gray-400"
-                value={newWorkspace.nome}
-                onChange={(e) => handleChange("nome", e.target.value)}
+                value={novoQuadro.nome}
+                onChange={(e) => salvarNovoQuadro("nome", e.target.value)}
               />
             </div>
             <div className="flex justify-center">
               <button
                 type="button"
                 onClick={() => {
-                  setModalOpen();
-                  setNewWorkspace({ nome: "" });
+                  props.setModalOpen();
+                  setNovoQuadro({ nome: "" });
                 }}
                 className="bg-red-500 text-white px-4 py-2 rounded mr-2"
               >
@@ -107,6 +92,4 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
   }
 
   return null;
-};
-
-export default ModalCadWork;
+}

@@ -13,6 +13,7 @@ model User {
   email      String          @unique
   workspaces WorkspaceUser[]
   chamados   ChamadoUser[]
+  setores     SetorUser[]     
 }
 
 model Workspace {
@@ -20,8 +21,7 @@ model Workspace {
   nome     String
   clientes Clientes[]
   users    WorkspaceUser[]
-  quadros  Quadro[]
-  chamados Chamado[]
+  setores   Setor[]
 }
 
 model WorkspaceUser {
@@ -65,11 +65,9 @@ model Chamado {
   atualizadoEm DateTime
   statusId     Int
   criadoPor    Int
-  workspaceId  Int
   clienteId    Int
   quadroId     Int
   cliente      Clientes      @relation(fields: [clienteId], references: [id])
-  workspace    Workspace     @relation(fields: [workspaceId], references: [id])
   quadro       Quadro        @relation(fields: [quadroId], references: [id])
   users        ChamadoUser[]
   status       Status        @relation(fields: [statusId], references: [id])
@@ -81,11 +79,31 @@ model Status {
   Chamado Chamado[]
 }
 
-model Quadro {
+model Setor {
   id          Int       @id @default(autoincrement())
   nome        String
   workspaceId Int
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
+  quadros     Quadro[]
+  usuarios    SetorUser[]   
+}
+
+model SetorUser {
+  setorId     Int
+  userId      Int
+  isAdmin     Boolean
+  setor       Setor     @relation(fields: [setorId], references: [id])
+  user        User      @relation(fields: [userId], references: [id])
+
+  @@id([setorId, userId])
+}
+
+
+model Quadro {
+  id          Int       @id @default(autoincrement())
+  nome        String
+  setorId     Int
+  setor       Setor     @relation(fields: [setorId], references: [id])
   chamados    Chamado[]
 }
 
