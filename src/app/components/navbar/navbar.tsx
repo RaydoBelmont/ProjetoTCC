@@ -2,7 +2,7 @@
 import Link from "next/link";
 import SigninButton from "./SigninButton";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState, createContext, useContext } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import BotaoModalWorkspace from "../botoes_modal/btnModalCadWork";
 import { useClickAway } from "react-use";
@@ -20,6 +20,7 @@ const Navbar: React.FC = () => {
   const [showOptions, setShowOptions] = useState(false); // Estado para controlar se as opções estão visíveis
   const refBtnWorkspace = useRef(null);
   const [workspaces, setWorkspaces] = useState<workspace[]>([]);
+
 
   const redirecionar = (id: number, nome: string) => {
     if (typeof window !== "undefined") {
