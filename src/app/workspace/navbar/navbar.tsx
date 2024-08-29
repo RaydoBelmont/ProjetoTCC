@@ -1,46 +1,34 @@
-import BotaoTarefas from "./botões/Tarefas/tarefas";
 import BotaoClientes from "./botões/Clientes/clientes";
 import WorkspaceConfig from "./botões/workspaceConfig/workSpaceConfig";
-import BotaoQuadros from "./botões/Quadros/quadros";
 import BotaoSetor from "./botões/Setores/setor";
-import { useState } from "react";
+import BotaoMembros from "./botões/Membros/membros";
+
 interface Props {
   nome: string;
-  idWorkspace: string;
-  setorStatus: boolean;
-  idUser: Number;
+  idWorkspace: string | number | null;
+  isAdmin: boolean | null;
+  userId: number;
+  setaPagina: (numeroPagina: number) => void
 }
 
 export default function Navbar(props: Props) {
-  if (props.setorStatus === false) {
-    return (
-      <nav className=" bg-[#212938] text-white top-0 left-0 w-auto h-12 flex items-center justify-between px-4">
-        <ul className="flex space-x-4">
+  return (
+    <nav className="sticky bg-[#212938] top-0 py-2 flex items-center justify-between px-4">
+      <ul className="flex space-x-4">
+        {props.isAdmin && (
           <li>
-            <BotaoTarefas />
-            <BotaoClientes />
-            <BotaoQuadros idWorkspace={props.idWorkspace} />
+            <BotaoSetor idWorkspace={props.idWorkspace} userId={props.userId} setaPagina={props.setaPagina}/>
+            <BotaoMembros setaPagina={props.setaPagina}/>
           </li>
-        </ul>
-        <div className="flex items-center gap-1">
-          <a>{props.nome}</a>
-          <WorkspaceConfig />
-        </div>
-      </nav>
-    );
-  } else {
-    return (
-      <nav className=" bg-[#212938] text-white top-0 left-0 w-auto h-12 flex items-center justify-between px-4">
-        <ul className="flex space-x-4">
-          <li>
-            <BotaoSetor idWorkspace={props.idWorkspace} idUser={props.idUser}/>
-          </li>
-        </ul>
-        <div className="flex items-center gap-1">
-          <a>{props.nome}</a>
-          <WorkspaceConfig />
-        </div>
-      </nav>
-    );
-  }
+        )}
+        <li>
+          <BotaoClientes  setaPagina={props.setaPagina}/>
+        </li>
+      </ul>
+      <div className="flex items-center gap-1">
+        <a>{props.nome}</a>
+        <WorkspaceConfig />
+      </div>
+    </nav>
+  );
 }

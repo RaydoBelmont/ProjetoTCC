@@ -25,6 +25,11 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
     }
   });
 
+  const clickRedirecionar = (id: number, nome: string) => {
+    redirecionar(id, nome);
+    setShowOptions(false);
+  };
+
   return (
     <div className="relative flex" ref={refBtnWorkspace}>
       <button
@@ -58,7 +63,7 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
             >
               <button
                 className="w-full select-none py-2 px-3"
-                onClick={() => redirecionar(workspace.id, workspace.nome)}
+                onClick={() => clickRedirecionar(workspace.id, workspace.nome)}
               >
                 {workspace.nome}
               </button>

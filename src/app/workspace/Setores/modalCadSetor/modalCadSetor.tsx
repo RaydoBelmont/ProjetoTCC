@@ -1,11 +1,12 @@
-import React, { Dispatch, SetStateAction, useState } from "react";
-import { useSession } from "next-auth/react";
+import React, {useState } from "react";
 
 type propsCadSetor = {
   isOpen: boolean;
   setModalOpen: () => void;
-  idWorkspace: string;
-  userId: string;
+  idWorkspace: string | Number | null;
+  userId: number
+
+  
 };
 
 type Setor = {
@@ -32,7 +33,7 @@ export default function ModalCadSetor(props: propsCadSetor) {
         body: JSON.stringify({
           nomeSetor: novoSetor.nome,
           workspaceId: props.idWorkspace,
-          userId: props.userId
+          userId: props.userId,
         }),
       });
       alert("Cadastro realizado com sucesso!");

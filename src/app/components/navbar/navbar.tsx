@@ -2,12 +2,19 @@
 import Link from "next/link";
 import SigninButton from "./SigninButton";
 import { useSession } from "next-auth/react";
-import { useCallback, useEffect, useRef, useState, createContext, useContext } from "react";
-import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import BotaoModalWorkspace from "../botoes_modal/btnModalCadWork";
+import {
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { useClickAway } from "react-use";
 import BotaoWorkspaces from "./botaoWorkspace";
-import ToggleDarkMode from "./botaoDarkMode";
+import { useRouter } from "next/navigation";
+import { buscaIdUserPorEmail } from "../../lib/UserFunctions/buscaIDuser";
+import CryptoJS from "crypto-js";
+import PerfilUser from "./perfilUser";
+import Image from "next/image";
+
 
 export interface workspace {
   id: number;
@@ -16,20 +23,29 @@ export interface workspace {
 }
 
 const Navbar: React.FC = () => {
+
   const { data: session } = useSession();
-  const [showOptions, setShowOptions] = useState(false); // Estado para controlar se as opções estão visíveis
+  const [showOptions, setShowOptions] = useState(false);
   const refBtnWorkspace = useRef(null);
   const [workspaces, setWorkspaces] = useState<workspace[]>([]);
+  const router = useRouter();
 
 
-  const redirecionar = (id: number, nome: string) => {
+  const redirecionar = async (idWorkspace: number, nome: string) => {
     if (typeof window !== "undefined") {
-      const idToString = id.toString();
-      const email = session?.user?.email || "semEmail";
-      sessionStorage.setItem("email", email);
-      sessionStorage.setItem("workspaceId", idToString);
+      const idUser = String(
+        await buscaIdUserPorEmail(String(session?.user?.email))
+      );
+      const secretKey = String(process.env.CHAVE_CRIPTO);
+      const encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(idWorkspace),
+        secretKey
+      ).toString();
+      sessionStorage.setItem("email", String(session?.user?.email));
+      sessionStorage.setItem("workspaceId", String(idWorkspace));
       sessionStorage.setItem("workspaceName", nome);
-      window.location.href = "/workspace";
+      sessionStorage.setItem("idUser", idUser);
+      router.push(`/workspace/${encodeURIComponent(encryptedData)}`);
     }
   };
 
@@ -47,82 +63,46 @@ const Navbar: React.FC = () => {
     }
   };
 
+  useClickAway(refBtnWorkspace, () => {
+    setShowOptions(false); 
+  });
+
   useEffect(() => {
     if (session && session.user) {
-      let email = session?.user?.email;
+      let email = String(session.user.email);
       if (email) listaWorkspaces(email);
     }
   }, [session]);
 
-  // const btWS = useCallback(
-  //   (chave?: any) => (
-  //     <BotaoWorkspaces
-  //       key={chave}
-  //       workspaces={workspaces}
-  //       setWorkspaces={setWorkspaces}
-  //       redirecionar={redirecionar}
-  //     />
-  //   ),
-  //   [workspaces]
-  // );
-
-  // const botaoWorkspaces = useCallback(
-  //   (chave?: any) => (
-  //     <div className="relative flex " key={chave} ref={refBtnWorkspace}>
-  //       <button
-  //         onClick={() => setShowOptions(!showOptions)}
-  //         className="text-white text-sm py-2 px-3 rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700 "
-  //       >
-  //         Workspaces
-  //         {showOptions ? (
-  //           <IoIosArrowDown className="h-5 w-5 ml-1 inline-block transform rotate-180" />
-  //         ) : (
-  //           <IoIosArrowUp className="h-5 w-5 ml-1 inline-block transform rotate-180" />
-  //         )}
-  //       </button>
-  //       {showOptions && ( // Mostra as opções apenas se showOptions for verdadeiro
-  //         <div className="absolute right-0 top-0 mt-10 bg-gray-700 py-2 px-3 rounded-md shadow-2xl">
-  //           <div className="text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700">
-  //             <BotaoModalWorkspace
-  //               areaDeTrabalho={workspaces}
-  //               setWorkspace={setWorkspaces}
-  //             />
-  //           </div>
-  //           {workspaces.map((workspace, index) => (
-  //             <div
-  //               key={index}
-  //               className=" text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700"
-  //             >
-  //               <button
-  //                 className="w-full select-none py-2 px-3"
-  //                 onClick={() => redirecionar(workspace.id, workspace.nome)}
-  //               >
-  //                 {workspace.nome}
-  //               </button>
-  //             </div>
-  //           ))}
-  //         </div>
-  //       )}
-  //     </div>
-  //   ),
-  //   [showOptions, workspaces]
-  // );
 
   const menuItems =
     session && session.user
       ? [
           { name: "Início", link: "/" },
           { name: "Workspaces", link: "" },
-          { name: "Blog", link: "/blog" },
         ]
-      : [
-          { name: "Início", link: "/" },
-          { name: "Contato", link: "/contato" },
-        ];
+      : [{ name: "Início", link: "/" }];
 
   return (
-    <nav className="sticky top-0 z-10 flex flex-col justify-between bg-[#384052]  p-4 border-b border-gray-600 min-w-44 h-screen">
+    <nav className="sticky top-0 z-10 flex flex-col justify-between bg-[#384052]  p-4 border-b border-gray-600 min-w-44 min-h-screen">
       <div className="flex flex-col gap-2">
+        <PerfilUser />
+        {session && session.user ? (
+          <div className="border-b border-gray-400 my-4"></div>
+        ) : (
+
+            <div
+              className="flex items-center justify-center bg-[#202938] p-2 rounded-lg"
+              style={{ width: "200px", height: "100px" }}
+            >
+              <img
+                src="/images/LOGO2.png"
+                alt="Logo"
+                className="object-contain w-full h-full"
+              />
+            </div>
+ 
+        )}
         {menuItems.map((item, index) =>
           item.name === "Workspaces" ? (
             <BotaoWorkspaces
@@ -142,8 +122,7 @@ const Navbar: React.FC = () => {
           )
         )}
       </div>
-      <ToggleDarkMode />
-      <div>
+      <div className="pb-2">
         <SigninButton />
       </div>
     </nav>

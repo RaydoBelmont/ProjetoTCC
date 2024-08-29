@@ -1,0 +1,11 @@
+/* styles.module.css */
+
+.input{
+    width: 100%; /* Equivalente a w-full */
+    background-color: #374151; /* Equivalente a bg-gray-700 */
+    color: white; /* Equivalente a text-white */
+    border-radius: 0.375rem; /* Equivalente a rounded */
+    font-size: 0.875rem; /* Equivalente a text-sm */
+    padding: 0.25rem; /* Equivalente a p-1 */
+  }
+  

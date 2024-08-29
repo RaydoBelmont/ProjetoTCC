@@ -1,7 +1,15 @@
-import { buscarWorkspacePorEmaileNome, handleSaveWorkspace, listarWorkspacesPorUser, verificaAdm } from "../../../../controllers/workspaceController";
+import { buscarWorkspacePorEmaileNome, handleSaveWorkspace, listarWorkspacesPorUser, verificaAdm } from "../../../../controllers/Workspace/workspaceController";
 import { NextRequest, NextResponse } from "next/server";
+// import { authOpcoes } from "../auth/[...nextauth]/route";
 
 export async function POST(request: NextRequest) {
+
+  // const session = await getServerSession(authOpcoes);
+  // if (!session) {
+  //   return new NextResponse("Requisição não autorizada!", { status: 401 });
+  // }
+
+
     if (request.method === 'POST') {
       const data = await request.json();
       const nome = data.nome;
@@ -20,6 +28,12 @@ export async function POST(request: NextRequest) {
   }
 
   export async function GET(request: NextRequest) {
+
+    // const session = await getServerSession(authOptions);
+    // if (!session) {
+    //   return new NextResponse("Requisição não autorizada!", { status: 401 });
+    // }
+  
     if (request.method === 'GET') {
       const userEmail  = request.nextUrl.searchParams.get("email") 
       const buscaPorNome  = request.nextUrl.searchParams.get("nomeWorkspace")

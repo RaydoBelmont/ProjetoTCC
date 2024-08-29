@@ -1,8 +1,7 @@
 import React, { Dispatch, SetStateAction, useState } from "react";
-import { handleSaveWorkspace } from "../../../../../controllers/workspaceController";
+import { handleSaveWorkspace } from "../../../../../controllers/Workspace/workspaceController";
 import { useSession } from "next-auth/react";
 import { workspace } from "../../navbar/navbar";
-import Workspace from "@/app/workspace/page";
 
 type ModalCadWorkProps = {
   isOpen: boolean;
@@ -42,7 +41,7 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
         }),
       });
 
-      if(response.ok){
+      if (response.ok) {
         const dados = await response.json();
         const novoWorkspace = {
           id: dados.id,
@@ -52,8 +51,7 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
         setWorkspace([...areaDeTrabalho, novoWorkspace]);
         alert("Cadastro realizado com sucesso!");
         setModalOpen();
-        
-      }else if(!response.ok) {
+      } else if (!response.ok) {
         throw new Error("Ocorreu um erro ao criar a workspace.");
       }
     } catch (error) {
@@ -64,7 +62,7 @@ const ModalCadWork: React.FC<ModalCadWorkProps> = ({
 
   if (isOpen) {
     return (
-      <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-gray-900 bg-opacity-50">
+      <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-gray-900 bg-opacity-50 ">
         <div className="bg-gray-800 p-8 rounded-lg border border-gray-200 animate-fade-in max-w-screen-md w-full">
           <h1 className="text-sm font-semibold mb-4 text-white text-center">
             Nova Workspace

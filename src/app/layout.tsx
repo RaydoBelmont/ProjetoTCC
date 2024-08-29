@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "./components/navbar/navbar";
 import Providers from "./components/Providers";
 const inter = Inter({ subsets: ["latin"] });
+import { ThemeProvider } from "../../context/themeContext";
+import { DadosUsuarioProvider } from "../../context/dadosUsuario";
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -16,15 +18,21 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <DadosUsuarioProvider>
+      <html lang="en">
+        <body className={inter.className}>
         <Providers>
-          <div className="flex">
-            <Navbar />
-            {children}
-          </div>
-        </Providers>
-      </body>
-    </html>
+            <div className="flex">
+              <div className="min-w-[200px]"> {/* Definindo uma largura mínima */}
+                <Navbar />
+              </div>
+              <div className="flex-grow"> {/* Deixe o conteúdo principal crescer conforme necessário */}
+                {children}
+              </div>
+            </div>
+          </Providers>
+        </body>
+      </html>
+    </DadosUsuarioProvider>
   );
 }

@@ -36,22 +36,34 @@ model WorkspaceUser {
 
 model Clientes {
   id          Int        @id @default(autoincrement())
-  empresa     String
-  razao       String
-  endereco    String
+  nome        String     
+  razao       String?
   cpfCnpj     String
-  iE          String
-  email       String
-  contatos    Contatos[]
-  observacao  String
+  iE          String?
+  email       String?
+  observacao  String?
+  ativo       Boolean @default(true)
   workspaceId Int
   workspace   Workspace  @relation(fields: [workspaceId], references: [id])
+  contatos    Contatos[]
   chamados    Chamado[]
+  endereco Endereco?
+}
+
+model Endereco {
+  id          Int        @id @default(autoincrement())
+  rua         String
+  numero      String
+  cep         String
+  bairro      String
+  cidade      String
+  uf          String
+  cliente Clientes @relation(fields: [clienteId], references: [id])
+  clienteId Int @unique
 }
 
 model Contatos {
   id        Int      @id @default(autoincrement())
-  nome      String
   telefone  String
   clienteId Int
   cliente   Clientes @relation(fields: [clienteId], references: [id])
@@ -61,8 +73,8 @@ model Chamado {
   id           Int           @id @default(autoincrement())
   titulo       String
   descricao    String
-  criadoEm     DateTime
-  atualizadoEm DateTime
+  criadoEm     DateTime @default(now())
+  atualizadoEm DateTime @updatedAt
   statusId     Int
   criadoPor    Int
   clienteId    Int

@@ -1,31 +1,16 @@
-import { useEffect, useState } from 'react';
+// components/ThemeSwitcher.tsx
+import React from "react";
+import { useTheme } from "../../../../context/themeContext";
 
-const ToggleDarkMode = () => {
-  const [darkMode, setDarkMode] = useState(false);
-
-  useEffect(() => {
-    if (localStorage.getItem('dark-mode') === 'enabled') {
-      document.body.classList.add('dark-mode');
-      setDarkMode(true);
-    }
-  }, []);
-
-  const toggleDarkMode = () => {
-    if (darkMode) {
-      document.body.classList.remove('dark-mode');
-      localStorage.removeItem('dark-mode');
-    } else {
-      document.body.classList.add('dark-mode');
-      localStorage.setItem('dark-mode', 'enabled');
-    }
-    setDarkMode(!darkMode);
-  };
+const ThemeSwitcher: React.FC = () => {
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <button onClick={toggleDarkMode}>
-      {darkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-    </button>
+    <div>
+      <p>Current Theme: {theme}</p>
+      <button onClick={toggleTheme}>Toggle Theme</button>
+    </div>
   );
 };
 
-export default ToggleDarkMode;
+export default ThemeSwitcher;

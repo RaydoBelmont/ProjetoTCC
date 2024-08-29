@@ -3,9 +3,9 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 17, 24, 40;
+  --background-end-rgb: 17, 24, 40;
 }
 
 .dark-mode {
@@ -38,9 +38,23 @@ input[type="tel"],
 input[type="number"],
 textarea,
 select {
-  @apply border border-gray-300 rounded px-3 py-2 w-full mb-4;
+  @apply border border-gray-300 rounded px-3 py-2 w-full mb-2;
 }
 
 .form-text{
   @apply block text-sm font-medium text-gray-700;
+}
+
+.light-theme {
+  background-color: white;
+  color: black;
+}
+
+.dark-theme {
+  background-color: black;
+  color: white;
+}
+
+.btn-item-dropdown {
+  @apply flex items-center w-full  gap-1 px-4 py-2 text-sm text-white font-medium hover:bg-gray-600 rounded-md;
 }

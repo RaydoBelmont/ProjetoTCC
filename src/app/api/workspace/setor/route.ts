@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   novoSetor,
   listarSetoresPorUser,
-} from "../../../../../controllers/setorController";
+} from "../../../../../controllers/Setores/setorController";
 
 export async function POST(request: NextRequest) {
   if (request.method === "POST") {

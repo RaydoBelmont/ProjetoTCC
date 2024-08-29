@@ -1,32 +1,32 @@
 import {
-  savarQuadro,
+ 
   listarQuadros,
-} from "../../../../controllers/quadrosController";
+} from "../../../../controllers/Quadros/quadrosController";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function POST(request: NextRequest) {
-  if (request.method === "POST") {
-    const data = await request.json();
-    const nome = data.nome;
-    const workspaceId = data.idWorkspace;
-    try {
-      const novoQuadro = await savarQuadro(nome, workspaceId);
-      return NextResponse.json({ novoQuadro }, { status: 200 });
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Ocorreu um erro ao criar o quadro." },
-        { status: 500 }
-      );
-    }
-  } else {
-    return NextResponse.json({ error: "Method not allowed." }, { status: 405 });
-  }
-}
+// export async function POST(request: NextRequest) {
+//   if (request.method === "POST") {
+//     const data = await request.json();
+//     const nome = data.nome;
+//     const workspaceId = data.idWorkspace;
+//     try {
+//       const novoQuadro = await savarQuadro(nome, workspaceId);
+//       return NextResponse.json({ novoQuadro }, { status: 200 });
+//     } catch (error) {
+//       return NextResponse.json(
+//         { error: "Ocorreu um erro ao criar o quadro." },
+//         { status: 500 }
+//       );
+//     }
+//   } else {
+//     return NextResponse.json({ error: "Method not allowed." }, { status: 405 });
+//   }
+// }
 
 export async function GET(request: NextRequest) {
   if (request.method === "GET") {
-    const workspaceId = request.nextUrl.searchParams.get("workspaceId");
-    if (!workspaceId) {
+    const setorID = request.nextUrl.searchParams.get("setorID");
+    if (!setorID) {
       return NextResponse.json(
         { error: "workspaceId é necessário" },
         { status: 400 }
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-      const quadros = await listarQuadros(workspaceId);
+      const quadros = await listarQuadros(setorID);
       return NextResponse.json(quadros, { status: 200 });
     } catch (error) {
       return NextResponse.json(
