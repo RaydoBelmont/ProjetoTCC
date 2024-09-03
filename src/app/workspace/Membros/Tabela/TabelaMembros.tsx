@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Typography,
   Card,
@@ -8,9 +8,13 @@ import {
   CardFooter,
   Input,
   Dialog,
+  Alert,
 } from "../../../lib/material-tailwindcss/material-tailwindcss";
 import { libSetarAdmin } from "@/app/lib/WorkspaceFunctions/Membros/setaAdmin";
-import { buscaIdUserPorEmail } from "@/app/lib/UserFunctions/buscaIDuser";
+import {
+  buscaIdUserPorEmail,
+  buscaUsuarioAdmin,
+} from "@/app/lib/UserFunctions/buscaIDuser";
 
 export interface Membro {
   id: number;
@@ -31,19 +35,43 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(!open);
   const [emailConvite, setEmailConvite] = useState<string>();
+  const [alertMessage, setAlertMessage] = useState<string | null>(null);
+  const [alertVisible, setAlertVisible] = useState<boolean>(false);
 
   const enviarConvite = async (event: React.FormEvent) => {
     event.preventDefault();
     try {
       const usuarioExiste = await buscaIdUserPorEmail(emailConvite);
       if (usuarioExiste) {
-        alert("Usuario Existe");
+        try {
+          const usuarioWorkspaceExiste = await buscaUsuarioAdmin(
+            emailConvite,
+            props.idWorkspace
+          );
+          if (usuarioWorkspaceExiste.userId) {
+            setAlertMessage("Usuário já existe na Workspace");
+            setAlertVisible(true);
+          } else {
+            setAlertMessage("Usuário não existe na Workspace");
+            setAlertVisible(true);
+          }
+        } catch (error) {
+          setAlertMessage("Erro ao verificar o usuário na Workspace");
+          setAlertVisible(true);
+        }
+
+        setAlertMessage("Usuário existe");
+        setAlertVisible(true);
         setEmailConvite("");
         setOpen(!open);
       } else {
-        alert("Usuario não existe no banco de dados!");
+        setAlertMessage("Usuário não existe no banco de dados!");
+        setAlertVisible(true);
       }
-    } catch (error) {}
+    } catch (error) {
+      setAlertMessage("Erro ao buscar o usuário");
+      setAlertVisible(true);
+    }
   };
 
   const setarAdmin = libSetarAdmin;
@@ -59,6 +87,16 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
       console.error("Erro ao atualizar membro:", error);
     }
   };
+
+  useEffect(() => {
+    if (alertVisible) {
+      const timer = setTimeout(() => {
+        setAlertVisible(false);
+      }, 3000); // O alerta some após 3 segundos
+
+      return () => clearTimeout(timer);
+    }
+  }, [alertVisible]);
 
   return (
     <div className="px-6 pt-4 ">
@@ -79,6 +117,15 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
           className="bg-transparent shadow-none"
         >
           <Card className="mx-auto w-full max-w-[24rem]">
+            {alertVisible && (
+              <Alert
+                color="red"
+                onClose={() => setAlertVisible(false)}
+                className="transition duration-500 ease-in-out transform mt-2 w-[90%]"
+              >
+                {alertMessage}
+              </Alert>
+            )}
             <form onSubmit={enviarConvite}>
               <CardBody className="flex flex-col gap-4">
                 <Typography variant="h4" color="blue-gray">

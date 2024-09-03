@@ -18,7 +18,7 @@ export const buscaIdUserPorEmail = async (email: string) => {
       const response = await fetch("/api/workspace?email=" + email + "&idWorkspace=" + idWorkspace)
       const data = await response.json();
       if(data && typeof data.isAdmin === "boolean"){
-        return data.isAdmin
+        return data
       } else {
         console.error("Erro: data.Admin é undefined ou não é um array");
       }
