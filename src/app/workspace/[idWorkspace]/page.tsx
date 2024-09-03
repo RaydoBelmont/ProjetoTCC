@@ -11,8 +11,9 @@ import {
 import { listaSetores } from "@/app/lib/SetoresFunctions/listarSetoresIdWorkspaceIdUser";
 import CryptoJS from "crypto-js";
 import { useSearchParams } from "next/navigation";
-import MembrosWorkspace, { Membro } from "../Membros/membros";
-import { buscaMembrosWorkspace } from "../../lib/WorkspaceFunctions/buscaMembrosDaWorkspace";
+import { Membro } from "../Membros/Tabela/TabelaMembros";
+import TableMembros from "../Membros/Tabela/TabelaMembros";
+import { buscaMembrosWorkspace } from "../../lib/WorkspaceFunctions/Membros/buscaMembrosDaWorkspace";
 import Clientes from "./Clientes/clientes";
 
 export interface setor {
@@ -37,17 +38,19 @@ const Workspace: React.FC = () => {
     setSwitchPagina(numeroPagina);
   };
 
-  const handleToggleAdmin = (id: number) => {
-    setMembros((prevMembros) =>
-      prevMembros.map((membro) =>
-        membro.id === id ? { ...membro, isAdmin: !membro.isAdmin } : membro
-      )
-    );
-  };
   const buscaSetores = listaSetores;
   const buscaPorIdTeste = buscaIdUserPorEmail;
   const buscaPorAdmin = buscaUsuarioAdmin;
   const buscaMembros = buscaMembrosWorkspace;
+
+  const buscaEsetaMembros = async () => {
+    if (session && session.user) {
+      const storedWorkspaceId = Number(sessionStorage.getItem("workspaceId"));
+      const idWorkspace = storedWorkspaceId;
+      const membros = await buscaMembros(idWorkspace);
+      setMembros(membros);
+    }
+  };
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem("email");
@@ -130,9 +133,9 @@ const Workspace: React.FC = () => {
         );
       case 1:
         return (
-          <MembrosWorkspace
+          <TableMembros
             membros={membros}
-            onToggleAdmin={handleToggleAdmin}
+            atualizarMembros={buscaEsetaMembros}
             idWorkspace={workspaceId}
             nomeWorkspace={workspaceName}
           />

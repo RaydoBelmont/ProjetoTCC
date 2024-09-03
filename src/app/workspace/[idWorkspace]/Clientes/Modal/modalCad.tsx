@@ -3,7 +3,6 @@ import {
   Button,
   Dialog,
   Card,
-  CardHeader,
   CardBody,
   CardFooter,
   Typography,
@@ -40,6 +39,51 @@ export function NovoCliente(props: popsCadClientes) {
   const [contato2, setContato2] = useState("");
   const updateCliente = atualizarCliente;
 
+  // Função para aplicar máscara no CEP
+  const handleCepChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.replace(/\D/g, "");
+    if (value.length > 5) {
+      value = value.replace(/^(\d{5})(\d)/, "$1-$2");
+    }
+    value = value.slice(0, 9); // Limita o CEP a 9 caracteres
+    setCep(value);
+  };
+
+  // Função para aplicar máscara no UF
+  const handleUfChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let value = e.target.value.toUpperCase().replace(/[^A-Z]/g, "");
+    value = value.slice(0, 2);
+    setUf(value);
+  };
+
+  // Função para aplicar máscara nos contatos
+  const formatarContato = (contato: string) => {
+    const digitsOnly = contato.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+
+    if (digitsOnly[2] === "9") {
+      return digitsOnly.replace(/(\d{2})(\d{5})(\d{4})/, "($1) $2-$3");
+    } else {
+      return digitsOnly.replace(/(\d{2})(\d{4})(\d{4})/, "($1) $2-$3");
+    }
+  };
+
+  const getMaxLength = (contato: string) => {
+    const digitsOnly = contato.replace(/\D/g, ""); // Remove todos os caracteres não numéricos
+    return digitsOnly.length > 10 ? 15 : 14;
+  };
+
+  const handleContatoChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    contatoIndex: number
+  ) => {
+    const { value } = e.target;
+    if (contatoIndex === 1) {
+      setContato1(formatarContato(value));
+    } else {
+      setContato2(formatarContato(value));
+    }
+  };
+
   const limpaCamposFechaJanela = () => {
     setNome("");
     setRazao("");
@@ -63,8 +107,8 @@ export function NovoCliente(props: popsCadClientes) {
     const form = event.currentTarget as HTMLFormElement;
     if (form.checkValidity()) {
       const contatos = [];
-      if (contato1) contatos.push({ telefone: contato1 });
-      if (contato2) contatos.push({ telefone: contato2 });
+      if (contato1) contatos.push({ telefone: contato1.replace(/\D/g, "") });
+      if (contato2) contatos.push({ telefone: contato2.replace(/\D/g, "") });
 
       const endereco =
         rua || endNumero || cep || bairro || cidade || uf
@@ -184,14 +228,17 @@ export function NovoCliente(props: popsCadClientes) {
         props.dadosCliente.contatos &&
         props.dadosCliente.contatos.length > 0
       ) {
-        setContato1(props.dadosCliente.contatos[0]?.telefone || "");
+        setContato1(
+          formatarContato(props.dadosCliente.contatos[0]?.telefone || "")
+        );
         if (props.dadosCliente.contatos.length > 1) {
-          setContato2(props.dadosCliente.contatos[1]?.telefone || "");
+          setContato2(
+            formatarContato(props.dadosCliente.contatos[1]?.telefone || "")
+          );
         }
       }
     }
   }, [props.acaoModal, props.dadosCliente]);
-
 
   return (
     <>
@@ -224,6 +271,7 @@ export function NovoCliente(props: popsCadClientes) {
                     required
                     crossOrigin={""}
                     color="white"
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
                   />
                 </div>
                 {/* Razão Social */}
@@ -234,6 +282,7 @@ export function NovoCliente(props: popsCadClientes) {
                     onChange={(e) => setRazao(e.target.value)}
                     crossOrigin={""}
                     color="white"
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
                   />
                 </div>
 
@@ -245,6 +294,7 @@ export function NovoCliente(props: popsCadClientes) {
                   required
                   crossOrigin={""}
                   color="white"
+                  readOnly={props.acaoModal === "Vizualizar" ? true : false}
                 />
 
                 {/* Inscrição Estadual */}
@@ -255,6 +305,7 @@ export function NovoCliente(props: popsCadClientes) {
                   onChange={(e) => setInscricao(e.target.value)}
                   crossOrigin={""}
                   color="white"
+                  readOnly={props.acaoModal === "Vizualizar" ? true : false}
                 />
 
                 {/* Rua */}
@@ -264,22 +315,29 @@ export function NovoCliente(props: popsCadClientes) {
                   onChange={(e) => setRua(e.target.value)}
                   crossOrigin={""}
                   color="white"
+                  readOnly={props.acaoModal === "Vizualizar" ? true : false}
                 />
                 {/* Número e CEP */}
                 <div className="grid grid-cols-2 gap-4">
                   <Input
+                    id="CEP"
                     label="Número"
                     value={endNumero}
                     onChange={(e) => setEndNumero(e.target.value)}
                     crossOrigin={""}
                     color="white"
+                    containerProps={{ className: "md:min-w-[100px]" }}
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
                   />
+
                   <Input
                     label="CEP"
                     value={cep}
-                    onChange={(e) => setCep(e.target.value)}
+                    onChange={handleCepChange}
                     crossOrigin={""}
                     color="white"
+                    containerProps={{ className: "md:min-w-[100px]" }}
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
                   />
                 </div>
                 {/* Cidade */}
@@ -289,6 +347,7 @@ export function NovoCliente(props: popsCadClientes) {
                   onChange={(e) => setCidade(e.target.value)}
                   crossOrigin={""}
                   color="white"
+                  readOnly={props.acaoModal === "Vizualizar" ? true : false}
                 />
                 {/* Bairro e UF */}
                 <div className="grid grid-cols-2 gap-4">
@@ -298,14 +357,18 @@ export function NovoCliente(props: popsCadClientes) {
                     onChange={(e) => setBairro(e.target.value)}
                     crossOrigin={""}
                     color="white"
-
+                    containerProps={{ className: "md:min-w-[100px]" }}
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
                   />
+
                   <Input
                     label="UF"
                     value={uf}
-                    onChange={(e) => setUf(e.target.value)}
+                    onChange={handleUfChange}
                     crossOrigin={""}
                     color="white"
+                    containerProps={{ className: "md:min-w-[100px]" }}
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
                   />
                 </div>
                 {/* Email */}
@@ -315,41 +378,52 @@ export function NovoCliente(props: popsCadClientes) {
                   onChange={(e) => setEmail(e.target.value)}
                   crossOrigin={""}
                   color="white"
+                  readOnly={props.acaoModal === "Vizualizar" ? true : false}
                 />
                 {/* Contato 1 e Contato 2 */}
                 <div className="grid grid-cols-2 gap-4">
                   <Input
                     label="Contato 1"
                     value={contato1}
-                    onChange={(e) => setContato1(e.target.value)}
+                    onChange={(e) => handleContatoChange(e, 1)}
                     crossOrigin={""}
                     color="white"
+                    placeholder="(99) 99999-9999"
+                    containerProps={{ className: "md:min-w-[100px]" }}
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
+                    maxLength={getMaxLength(contato1)} // Define o maxLength com base no tipo de número
                   />
+
                   <Input
                     label="Contato 2"
                     value={contato2}
-                    onChange={(e) => setContato2(e.target.value)}
+                    onChange={(e) => handleContatoChange(e, 2)}
                     crossOrigin={""}
                     color="white"
+                    placeholder="(99) 99999-9999"
+                    containerProps={{ className: "md:min-w-[100px]" }}
+                    readOnly={props.acaoModal === "Vizualizar" ? true : false}
+                    maxLength={getMaxLength(contato2)} // Define o maxLength com base no tipo de número
                   />
                 </div>
                 {/* Observações */}
                 <div className="col-span-2">
                   <div className="relative w-full">
                     <textarea
-                      className="peer h-20 w-full rounded-[7px] border bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-white outline-none transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 focus:border-2 focus:outline-none resize-none" // Mantendo resize-none
+                      className="peer h-20 w-full rounded-[7px] border bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-white outline-none transition-all placeholder-shown:border placeholder-shown:border-white focus:border-2 focus:outline-none resize-none" // Mantendo resize-none
                       placeholder=" "
                       value={observacao}
                       onChange={(e) => setObservacao(e.target.value)}
+                      readOnly={props.acaoModal === "Vizualizar" ? true : false}
                     />
                     <label
-                      className={`absolute transition-all left-3 mt-2 origin-[0] px-1 text-white font-body leading-tight 
+                      className={`absolute transition-all left-3 mt-2 origin-[0] px-1 text-white leading-tight text-[14px]
     ${
       observacao
-        ? "-top-4 left-3 scale-[0.85] bg-[#384152] text-white text-[13px]"
+        ? "-top-4 left-3 scale-[0.85] bg-[#384152] text-white text-[14px]"
         : "peer-placeholder-shown:top-0 peer-placeholder-shown:left-3 peer-placeholder-shown:scale-100 peer-placeholder-shown:bg-transparent"
     } 
-    peer-focus:-top-4 peer-focus:left-3 peer-focus:scale-[0.85] peer-focus:bg-[#384152] peer-focus:text-white peer-focus:text-[13px]`}
+    peer-focus:-top-4 peer-focus:left-3 peer-focus:scale-[0.85] peer-focus:bg-[#384152] peer-focus:text-white peer-focus:text-[14px]`}
                     >
                       Observações
                     </label>

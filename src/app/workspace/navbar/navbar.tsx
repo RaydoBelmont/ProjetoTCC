@@ -13,7 +13,7 @@ interface Props {
 
 export default function Navbar(props: Props) {
   return (
-    <nav className="sticky bg-[#212938] top-0 py-2 flex items-center justify-between px-4">
+    <nav className="sticky z-10 bg-[#212938] top-0 py-2 flex items-center justify-between px-4">
       <ul className="flex space-x-4">
         {props.isAdmin && (
           <li>

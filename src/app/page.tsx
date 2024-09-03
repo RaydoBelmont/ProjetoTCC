@@ -4,7 +4,7 @@ import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 import { useDadosUsuario } from "../../context/dadosUsuario";
 import { buscaIdUserPorEmail } from "./lib/UserFunctions/buscaIDuser";
-import Image from "next/image";
+
 
 export default function Home() {
   const { data: session } = useSession();

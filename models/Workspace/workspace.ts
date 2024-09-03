@@ -14,7 +14,8 @@ export const createWorkspace = async (nome: string, userEmail: string) => {
           // Relaciona o usuário à nova workspace
           create: {
             userId,
-            isAdmin: true, // Defina como true se desejar que o usuário criador seja um administrador da workspace
+            isAdmin: true,
+            isCriador: true // Defina como true se desejar que o usuário criador seja um administrador da workspace
           },
         },
       },

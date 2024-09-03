@@ -13,7 +13,8 @@ import {
     Typography,
     Input,
     Checkbox,
-    Textarea  
+    Textarea,
+    IconButton  
   } from "@material-tailwind/react";
  
 export {
@@ -30,4 +31,5 @@ export {
   Input,
   Checkbox,
   Textarea ,
+  IconButton,
 };

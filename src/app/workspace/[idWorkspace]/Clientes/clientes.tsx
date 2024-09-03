@@ -194,7 +194,7 @@ export default function Clientes(props: propsClientes) {
                       adicionarClienteNaLista={adicionarClienteNaLista}
                       atualizarClienteNaLista={atualizarClienteNaLista}
                       acaoModal={acaoModal}
-                      dadosCliente={dadosClienteParaAtualizar}
+                      dadosCliente={dadosClienteParaVizualizar}
                     />
                   );
                 default:

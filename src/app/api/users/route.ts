@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getServerSession } from "next-auth/next";
 import {buscarPorUser} from "../../../../controllers/user/userController"
-// import { GET } from "@/app/api/auth/[...nextauth]/route"; // Certifique-se de que o caminho está correto
+
 
 export async function GET(req: NextRequest) {
 

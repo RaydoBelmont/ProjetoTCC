@@ -14,6 +14,7 @@ model User {
   workspaces WorkspaceUser[]
   chamados   ChamadoUser[]
   setores     SetorUser[]     
+  notificacoes Notificacao[]
 }
 
 model Workspace {
@@ -28,6 +29,7 @@ model WorkspaceUser {
   userId      Int
   workspaceId Int
   isAdmin     Boolean
+  isCriador   Boolean @default(false)
   user        User      @relation(fields: [userId], references: [id])
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
 
@@ -126,4 +128,18 @@ model ChamadoUser {
   chamado   Chamado @relation(fields: [chamadoId], references: [id])
 
   @@id([userId, chamadoId])
+}
+
+model Notificacao {
+  id            Int       @id @default(autoincrement())
+  userId        Int
+  tipo          String
+  mensagem      String
+  workspaceId   Int?      // Pode ser opcional, dependendo do tipo da notificação
+  dataCriacao   DateTime  @default(now())
+  lido          Boolean   @default(false)
+  arquivado     Boolean @default(false)
+  user          User      @relation(fields: [userId], references: [id])
+
+  @@index([userId])
 }
