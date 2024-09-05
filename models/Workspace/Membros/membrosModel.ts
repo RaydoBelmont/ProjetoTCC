@@ -60,3 +60,42 @@ export const buscaMembrosWorkspace = async (workspaceId: number) => {
     return [];
   }
 }
+
+export const buscaMembroWorkspace = async (workspaceId: number, userId: number) => {
+  try {
+    const workspaceUser = await prisma.workspaceUser.findFirst({
+      where: {
+        workspaceId: workspaceId, // Filtro pelo ID da workspace
+        userId: userId,           // Filtro pelo ID do usuário
+      },
+      select: {
+        isAdmin: true, // Seleciona se o usuário é admin ou não
+        isCriador: true,
+        user: {
+          select: {
+            id: true,
+            nome: true,   // Seleciona o nome do usuário
+            email: true,  // Seleciona o email do usuário
+          },
+        },
+      },
+    });
+
+    // Se um usuário foi encontrado, retorna as informações dele
+    if (workspaceUser) {
+      return {
+        id: workspaceUser.user.id,
+        nome: workspaceUser.user.nome,
+        email: workspaceUser.user.email,
+        isAdmin: workspaceUser.isAdmin,
+        isCriador: workspaceUser.isCriador,
+        usuarioExiste: true
+      };
+    } else {
+      return {usuarioExiste: false}; // Retorna null se o usuário não for encontrado
+    }
+  } catch (error) {
+    console.error('Erro ao obter Membro da Workspace em model:', error);
+    return null; // Retorna null em caso de erro
+  }
+};

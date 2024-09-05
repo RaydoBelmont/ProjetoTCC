@@ -1,21 +1,35 @@
 import { NextRequest, NextResponse } from "next/server";
 import {
   listarMembrosWorkspace,
+  getMembroWorkspace,
   setarAdmin,
 } from "../../../../../controllers/Workspace/MembrosWorkspace/membrosController";
 
 export async function GET(request: NextRequest) {
   if (request.method === "GET") {
     const workspaceId = Number(request.nextUrl.searchParams.get("workspaceId"));
+    const userId = Number(request.nextUrl.searchParams.get("userId"));
 
-    try {
-      const listaDeMembros = await listarMembrosWorkspace(workspaceId);
-      return NextResponse.json(listaDeMembros, { status: 200 });
-    } catch (error) {
-      return NextResponse.json(
-        { error: "Erro ao tentar buscar por Membros da Workspace na API." },
-        { status: 500 }
-      );
+    if (workspaceId && !userId) {
+      try {
+        const listaDeMembros = await listarMembrosWorkspace(workspaceId);
+        return NextResponse.json(listaDeMembros, { status: 200 });
+      } catch (error) {
+        return NextResponse.json(
+          { error: "Erro ao tentar buscar por Membros da Workspace na API." },
+          { status: 500 }
+        );
+      }
+    }else if(workspaceId && userId){
+      try {
+        const userWorkspaceExiste = await getMembroWorkspace(workspaceId, userId);
+        return NextResponse.json(userWorkspaceExiste, { status: 200 });
+      } catch (error) {
+        return NextResponse.json(
+          { error: "Erro ao tentar buscar por Membros da Workspace na API." },
+          { status: 500 }
+        );
+      }
     }
   }
 }

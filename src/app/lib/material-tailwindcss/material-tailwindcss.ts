@@ -15,7 +15,15 @@ import {
     Checkbox,
     Textarea,
     IconButton ,
-    Alert 
+    Alert ,
+    Menu,
+    MenuHandler,
+    MenuList,
+    MenuItem,
+    Badge,
+    Popover,
+    PopoverHandler,
+    PopoverContent,
   } from "@material-tailwind/react";
  
 export {
@@ -34,4 +42,12 @@ export {
   Textarea ,
   IconButton,
   Alert,
+  Menu,
+  MenuHandler,
+  MenuList,
+  MenuItem,
+  Badge,
+  Popover,
+  PopoverHandler,
+  PopoverContent,
 };

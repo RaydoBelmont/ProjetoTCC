@@ -1,7 +1,7 @@
 "use client";
 import { useSession } from "next-auth/react";
 import Image from "next/image";
-import { FaCog } from 'react-icons/fa'; // Biblioteca de ícones para o botão de configurações
+import BotaoNotificacoes from "./botaoNotificacoes";
 
 export default function PerfilUser() {
   const { data: session } = useSession();
@@ -12,21 +12,25 @@ export default function PerfilUser() {
     const userImagem = session.user.image || ""; // Garanta que userImagem seja uma string
 
     return (
-      <div className="flex items-center bg-[#202938] p-4 rounded-lg shadow-md gap-1">
-        <div className="mr-4">
+      <div className="flex items-center bg-[#202938] p-1 rounded-lg shadow-md gap-1 justify-between">
+        <div className="flex justify-start items-center">
+        <div className="flex p-2 ">
           {userImagem && (
             <Image
               src={userImagem}
-              width={50}
-              height={50}
+              width={35}
+              height={35}
               className="rounded-full"
               alt="Imagem de perfil"
             />
           )}
         </div>
-        <div className="flex-grow">
+        <div className="">
           <h2 className="text-lg font-semibold">{primeiroNome}</h2>
         </div>
+        </div>
+
+        <BotaoNotificacoes />
       </div>
     );
   }

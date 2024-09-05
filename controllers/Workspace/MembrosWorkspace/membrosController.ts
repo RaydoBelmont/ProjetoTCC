@@ -1,4 +1,4 @@
-import {buscaMembrosWorkspace, setaAdmin} from "../../../models/Workspace/Membros/membrosModel"
+import {buscaMembrosWorkspace,buscaMembroWorkspace,setaAdmin} from "../../../models/Workspace/Membros/membrosModel"
 
 export const setarAdmin = async (workspaceId: number, userId: number, isAdmin: boolean) => {
   try {
@@ -15,5 +15,14 @@ export const listarMembrosWorkspace = async (workspaceId: number) => {
       return users
     } catch (error) {
       console.error('Erro ao obter as Membros da Workspace em Controller:', error);
+    }
+  }
+
+export const getMembroWorkspace = async (workspaceId: number, userId: number) => {
+    try {
+      const user = await buscaMembroWorkspace(workspaceId, userId);
+      return user
+    } catch (error) {
+      console.error('Erro ao obter as MembrO da Workspace em Controller:', error);
     }
   }

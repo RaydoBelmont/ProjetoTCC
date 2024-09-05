@@ -5,7 +5,7 @@ export const buscaIdUserPorEmail = async (email: string) => {
       if (data && Number.isInteger(data)) {
         return data;
       } else {
-        console.error("Erro: data.usuario é undefined ou não é um array");
+        return false
       }
     } catch (error) {
       console.error("Erro ao carregar o usuario:", error);
@@ -18,7 +18,7 @@ export const buscaIdUserPorEmail = async (email: string) => {
       const response = await fetch("/api/workspace?email=" + email + "&idWorkspace=" + idWorkspace)
       const data = await response.json();
       if(data && typeof data.isAdmin === "boolean"){
-        return data
+        return data.isAdmin
       } else {
         console.error("Erro: data.Admin é undefined ou não é um array");
       }

@@ -11,10 +11,9 @@ import {
   Alert,
 } from "../../../lib/material-tailwindcss/material-tailwindcss";
 import { libSetarAdmin } from "@/app/lib/WorkspaceFunctions/Membros/setaAdmin";
-import {
-  buscaIdUserPorEmail,
-  buscaUsuarioAdmin,
-} from "@/app/lib/UserFunctions/buscaIDuser";
+import { buscaIdUserPorEmail } from "@/app/lib/UserFunctions/buscaIDuser";
+import { getMembroParaWorkspace } from "@/app/lib/WorkspaceFunctions/Membros/getMembroParaConvite";
+import { inserirNotificacao } from "@/app/lib/NotificacoesFunctions/libInserirNotificacao";
 
 export interface Membro {
   id: number;
@@ -34,36 +33,51 @@ interface MembrosWorkspaceProps {
 export default function TableMembros(props: MembrosWorkspaceProps) {
   const [open, setOpen] = useState(false);
   const handleOpen = () => setOpen(!open);
-  const [emailConvite, setEmailConvite] = useState<string>();
+  const [emailConvite, setEmailConvite] = useState<string>("");
   const [alertMessage, setAlertMessage] = useState<string | null>(null);
   const [alertVisible, setAlertVisible] = useState<boolean>(false);
 
   const enviarConvite = async (event: React.FormEvent) => {
     event.preventDefault();
+
     try {
       const usuarioExiste = await buscaIdUserPorEmail(emailConvite);
       if (usuarioExiste) {
         try {
-          const usuarioWorkspaceExiste = await buscaUsuarioAdmin(
-            emailConvite,
+          const usuarioWorkspaceExiste = await getMembroParaWorkspace(
+            usuarioExiste,
             props.idWorkspace
           );
-          if (usuarioWorkspaceExiste.userId) {
-            setAlertMessage("Usuário já existe na Workspace");
+          if (usuarioWorkspaceExiste?.usuarioExiste == true) {
+            setAlertMessage(
+              "Usuário já existe nessa Workspace! Tente outro Email."
+            );
             setAlertVisible(true);
           } else {
-            setAlertMessage("Usuário não existe na Workspace");
+            // Atualiza o alerta para "Enviando convite..."
+            setAlertMessage("Enviando convite...");
             setAlertVisible(true);
+
+            // Insere a notificação no banco de dados
+            await inserirNotificacao(
+              usuarioExiste,
+              "CONVITE_WS",
+              `Você foi convidado para a workspace: ${props.nomeWorkspace}`,
+              props.idWorkspace,
+            );
+
+            // Após inserir a notificação, limpa os estados e fecha o modal
+            setAlertMessage("Convite enviado com sucesso!");
+            setTimeout(() => {
+              setAlertVisible(false);
+              setEmailConvite("");
+              setOpen(false);
+            }, 4000); // Exibe o alerta de sucesso por 4 segundos
           }
         } catch (error) {
           setAlertMessage("Erro ao verificar o usuário na Workspace");
           setAlertVisible(true);
         }
-
-        setAlertMessage("Usuário existe");
-        setAlertVisible(true);
-        setEmailConvite("");
-        setOpen(!open);
       } else {
         setAlertMessage("Usuário não existe no banco de dados!");
         setAlertVisible(true);
@@ -92,8 +106,7 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
     if (alertVisible) {
       const timer = setTimeout(() => {
         setAlertVisible(false);
-      }, 3000); // O alerta some após 3 segundos
-
+      }, 4000);
       return () => clearTimeout(timer);
     }
   }, [alertVisible]);
@@ -117,17 +130,20 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
           className="bg-transparent shadow-none"
         >
           <Card className="mx-auto w-full max-w-[24rem]">
-            {alertVisible && (
-              <Alert
-                color="red"
-                onClose={() => setAlertVisible(false)}
-                className="transition duration-500 ease-in-out transform mt-2 w-[90%]"
-              >
-                {alertMessage}
-              </Alert>
-            )}
             <form onSubmit={enviarConvite}>
               <CardBody className="flex flex-col gap-4">
+                {alertVisible && (
+                  <Alert
+                    color={
+                      alertMessage === "Enviando convite..." ? "blue" : "red"
+                    }
+                    onClose={() => setAlertVisible(false)}
+                    className="transition duration-700 ease-in-out transform mt-2"
+                  >
+                    {alertMessage}
+                  </Alert>
+                )}
+
                 <Typography variant="h4" color="blue-gray">
                   Convidar Membro
                 </Typography>

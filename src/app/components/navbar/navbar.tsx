@@ -2,19 +2,13 @@
 import Link from "next/link";
 import SigninButton from "./SigninButton";
 import { useSession } from "next-auth/react";
-import {
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import BotaoWorkspaces from "./botaoWorkspace";
 import { useRouter } from "next/navigation";
 import { buscaIdUserPorEmail } from "../../lib/UserFunctions/buscaIDuser";
 import CryptoJS from "crypto-js";
 import PerfilUser from "./perfilUser";
-import Image from "next/image";
-
 
 export interface workspace {
   id: number;
@@ -23,13 +17,11 @@ export interface workspace {
 }
 
 const Navbar: React.FC = () => {
-
   const { data: session } = useSession();
   const [showOptions, setShowOptions] = useState(false);
   const refBtnWorkspace = useRef(null);
   const [workspaces, setWorkspaces] = useState<workspace[]>([]);
   const router = useRouter();
-
 
   const redirecionar = async (idWorkspace: number, nome: string) => {
     if (typeof window !== "undefined") {
@@ -64,7 +56,7 @@ const Navbar: React.FC = () => {
   };
 
   useClickAway(refBtnWorkspace, () => {
-    setShowOptions(false); 
+    setShowOptions(false);
   });
 
   useEffect(() => {
@@ -73,7 +65,6 @@ const Navbar: React.FC = () => {
       if (email) listaWorkspaces(email);
     }
   }, [session]);
-
 
   const menuItems =
     session && session.user
@@ -90,18 +81,16 @@ const Navbar: React.FC = () => {
         {session && session.user ? (
           <div className="border-b border-gray-400 my-4"></div>
         ) : (
-
-            <div
-              className="flex items-center justify-center bg-[#202938] p-2 rounded-lg"
-              style={{ width: "200px", height: "100px" }}
-            >
-              <img
-                src="/images/LOGO2.png"
-                alt="Logo"
-                className="object-contain w-full h-full"
-              />
-            </div>
- 
+          <div
+            className="flex items-center justify-center bg-[#202938] p-2 rounded-lg"
+            style={{ width: "200px", height: "100px" }}
+          >
+            <img
+              src="/images/LOGO2.png"
+              alt="Logo"
+              className="object-contain w-full h-full"
+            />
+          </div>
         )}
         {menuItems.map((item, index) =>
           item.name === "Workspaces" ? (

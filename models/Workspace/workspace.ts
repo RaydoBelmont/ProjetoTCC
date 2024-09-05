@@ -123,7 +123,6 @@ export const checkAdminStatus = async (
         },
       },
       select: {
-        userId: true,
         isAdmin: true,
       },
     });
