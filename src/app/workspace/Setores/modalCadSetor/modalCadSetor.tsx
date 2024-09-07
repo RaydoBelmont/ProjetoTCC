@@ -33,7 +33,6 @@ export default function ModalCadSetor(props: propsCadSetor) {
         body: JSON.stringify({
           nomeSetor: novoSetor.nome,
           workspaceId: props.idWorkspace,
-          userId: props.userId,
         }),
       });
       alert("Cadastro realizado com sucesso!");

@@ -5,16 +5,17 @@ import Loading from "./Loading";
 import Navbar from "../navbar/navbar";
 import Setor from "../Setores/setor";
 import {
-  buscaIdUserPorEmail,
   buscaUsuarioAdmin,
 } from "../../lib/UserFunctions/buscaIDuser";
 import { listaSetores } from "@/app/lib/SetoresFunctions/listarSetoresIdWorkspaceIdUser";
 import CryptoJS from "crypto-js";
-import { useSearchParams } from "next/navigation";
+import { redirect,  } from "next/navigation";
 import { Membro } from "../Membros/Tabela/TabelaMembros";
 import TableMembros from "../Membros/Tabela/TabelaMembros";
 import { buscaMembrosWorkspace } from "../../lib/WorkspaceFunctions/Membros/buscaMembrosDaWorkspace";
 import Clientes from "./Clientes/clientes";
+import { useParams } from 'next/navigation';
+
 
 export interface setor {
   id: number;
@@ -24,7 +25,6 @@ export interface setor {
 
 const Workspace: React.FC = () => {
   const { data: session } = useSession();
-  const searchParams = useSearchParams();
   const [workspaceId, setWorkspaceId] = useState<number | null>(null);
   const [workspaceName, setWorkspaceName] = useState<string | null>(null);
   const [idUser, setIdUser] = useState<number | null>(null);
@@ -34,23 +34,32 @@ const Workspace: React.FC = () => {
   const [switchPagina, setSwitchPagina] = useState<number>(0);
   const [membros, setMembros] = useState<Membro[]>([]);
 
+
   const setaPagina = (numeroPagina: number) => {
     setSwitchPagina(numeroPagina);
   };
-
-  const buscaSetores = listaSetores;
-  const buscaPorIdTeste = buscaIdUserPorEmail;
-  const buscaPorAdmin = buscaUsuarioAdmin;
-  const buscaMembros = buscaMembrosWorkspace;
 
   const buscaEsetaMembros = async () => {
     if (session && session.user) {
       const storedWorkspaceId = Number(sessionStorage.getItem("workspaceId"));
       const idWorkspace = storedWorkspaceId;
-      const membros = await buscaMembros(idWorkspace);
+      const membros = await buscaMembrosWorkspace(idWorkspace);
       setMembros(membros);
     }
   };
+
+  const atualizaSetores = async (workspaceId: number) => {
+    try {
+      const setores = await listaSetores(workspaceId);
+      if(setores){
+        setSetores(setores)
+      }
+    } catch (error) {
+      console.log("Erro ao buscar setores.")
+    }
+  }
+
+  const { idWorkspace } = useParams();
 
   useEffect(() => {
     const storedEmail = sessionStorage.getItem("email");
@@ -60,10 +69,11 @@ const Workspace: React.FC = () => {
     setWorkspaceName(String(sessionStorage.getItem("workspaceName")));
     setIdUser(storedIdUser);
 
-    const encryptedData = searchParams.get("idWorkspace");
+    
+    const encryptedData = String(idWorkspace)
+    console.log(encryptedData)
     if (encryptedData) {
       const secretKey = String(process.env.CHAVE_CRIPTO);
-
       try {
         const bytes = CryptoJS.AES.decrypt(
           decodeURIComponent(encryptedData),
@@ -76,16 +86,12 @@ const Workspace: React.FC = () => {
       }
     }
 
-    const buscaEsetaUserID = async () => {
+    const buscaESetaSetores = async () => {
       if (session && session.user) {
         const emailUser = String(session?.user?.email);
-        const idUserBanco = await buscaPorIdTeste(emailUser);
-        if (emailUser == storedEmail && idUserBanco == storedIdUser) {
+        if (emailUser == storedEmail) {
           setVerificaEmail(true);
-          const dataSetores = await buscaSetores(
-            Number(storedWorkspaceId),
-            Number(idUserBanco)
-          );
+          const dataSetores = await listaSetores(Number(storedWorkspaceId));
           setSetores(dataSetores);
         } else {
           setVerificaEmail(false);
@@ -98,7 +104,7 @@ const Workspace: React.FC = () => {
         const emailUser = String(session?.user?.email);
         const idWorkspace = storedWorkspaceId;
         if (emailUser == storedEmail) {
-          const admin = await buscaPorAdmin(emailUser, Number(idWorkspace));
+          const admin = await buscaUsuarioAdmin(emailUser, Number(idWorkspace));
           setIsAdmin(Boolean(admin));
         } else {
           setIsAdmin(false);
@@ -106,18 +112,18 @@ const Workspace: React.FC = () => {
       }
     };
 
-    const buscaEsetaMembros = async () => {
-      if (session && session.user) {
-        const idWorkspace = storedWorkspaceId;
-        const membros = await buscaMembros(idWorkspace);
-        setMembros(membros);
-      }
-    };
-
-    buscaEsetaMembros();
-    buscaEsetaUserID();
-    buscaEsetaAdmin();
-  }, [session, buscaPorAdmin, buscaPorIdTeste, searchParams]);
+    if (session && session.user) {
+      const buscaDadosIniciais = async () => {
+        await Promise.all([
+          buscaEsetaMembros(),
+          buscaESetaSetores(),
+          buscaEsetaAdmin()
+        ]);
+      };
+  
+      buscaDadosIniciais();
+    }
+  }, [session]);
 
   const renderPageContent = () => {
     switch (switchPagina) {
@@ -126,9 +132,9 @@ const Workspace: React.FC = () => {
           <Setor
             idWorkspace={workspaceId}
             nomeWorkspace={workspaceName}
-            idUser={idUser}
             isAdmin={isAdmin}
             Setor={setores}
+            atualizarSetores={atualizaSetores}
           />
         );
       case 1:
@@ -138,6 +144,7 @@ const Workspace: React.FC = () => {
             atualizarMembros={buscaEsetaMembros}
             idWorkspace={workspaceId}
             nomeWorkspace={workspaceName}
+            userAdmin={isAdmin}
           />
         );
       case 2:
@@ -165,11 +172,7 @@ const Workspace: React.FC = () => {
       </main>
     );
   } else {
-    return (
-      <div>
-        <h1>Erro: O email da sessão não corresponde ao email salvo.</h1>
-      </div>
-    );
+    return redirect("/");
   }
 };
 

@@ -28,6 +28,7 @@ interface MembrosWorkspaceProps {
   atualizarMembros: () => void;
   idWorkspace: number;
   nomeWorkspace: string;
+  userAdmin: boolean;
 }
 
 export default function TableMembros(props: MembrosWorkspaceProps) {
@@ -57,13 +58,15 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
             // Atualiza o alerta para "Enviando convite..."
             setAlertMessage("Enviando convite...");
             setAlertVisible(true);
-
+            const dataExpira = new Date();
+            dataExpira.setDate(dataExpira.getDate() + 3);
             // Insere a notificação no banco de dados
             await inserirNotificacao(
               usuarioExiste,
               "CONVITE_WS",
               `Você foi convidado para a workspace: ${props.nomeWorkspace}`,
               props.idWorkspace,
+              dataExpira
             );
 
             // Após inserir a notificação, limpa os estados e fecha o modal
@@ -118,9 +121,11 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
           <Typography variant="h3" color="white" className="font-bold">
             Membros da {props.nomeWorkspace}
           </Typography>
-          <Button color="light-blue" onClick={handleOpen}>
-            Convidar
-          </Button>
+          {props.userAdmin === true ? (
+            <Button color="light-blue" onClick={handleOpen}>
+              Convidar
+            </Button>
+          ) : null}
         </div>
 
         <Dialog
@@ -207,15 +212,17 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
                     Cargo
                   </Typography>
                 </th>
-                <th className="border-b border-gray-300 pb-4 pt-10 pl-7">
-                  <Typography
-                    variant="small"
-                    color="white"
-                    className="font-bold leading-none"
-                  >
-                    Ação
-                  </Typography>
-                </th>
+                {props.userAdmin === true ? (
+                  <th className="border-b border-gray-300 pb-4 pt-10 pl-7">
+                    <Typography
+                      variant="small"
+                      color="white"
+                      className="font-bold leading-none"
+                    >
+                      Ação
+                    </Typography>
+                  </th>
+                ) : null}
               </tr>
             </thead>
             <tbody>
@@ -252,45 +259,48 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
                         : "Membro"}
                     </Typography>
                   </td>
-                  {membro.isCriador ? (
-                    <td className="p-2 pr-2  border-b border-gray-300">
-                      <Button variant="gradient" color="blue-gray" disabled>
-                        Criador
-                      </Button>
-                    </td>
-                  ) : membro.isAdmin ? (
-                    <td className="p-2 pr-2  border-b border-gray-300">
-                      <Button
-                        variant="gradient"
-                        color="red"
-                        onClick={() =>
-                          setaEAtualizaMembros(
-                            membro.id,
-                            props.idWorkspace,
-                            false
-                          )
-                        }
-                      >
-                        Tornar Membro
-                      </Button>
-                    </td>
-                  ) : (
-                    <td className="p-2 pr-2  border-b border-gray-300">
-                      <Button
-                        variant="gradient"
-                        color="blue"
-                        onClick={() =>
-                          setaEAtualizaMembros(
-                            membro.id,
-                            props.idWorkspace,
-                            true
-                          )
-                        }
-                      >
-                        Tornar Admin
-                      </Button>
-                    </td>
-                  )}
+
+                  {props.userAdmin === true ? (
+                    membro.isCriador ? (
+                      <td className="p-2 pr-2  border-b border-gray-300">
+                        <Button variant="gradient" color="blue-gray" disabled>
+                          Criador
+                        </Button>
+                      </td>
+                    ) : membro.isAdmin ? (
+                      <td className="p-2 pr-2  border-b border-gray-300">
+                        <Button
+                          variant="gradient"
+                          color="red"
+                          onClick={() =>
+                            setaEAtualizaMembros(
+                              membro.id,
+                              props.idWorkspace,
+                              false
+                            )
+                          }
+                        >
+                          Tornar Membro
+                        </Button>
+                      </td>
+                    ) : (
+                      <td className="p-2 pr-2  border-b border-gray-300">
+                        <Button
+                          variant="gradient"
+                          color="blue"
+                          onClick={() =>
+                            setaEAtualizaMembros(
+                              membro.id,
+                              props.idWorkspace,
+                              true
+                            )
+                          }
+                        >
+                          Tornar Admin
+                        </Button>
+                      </td>
+                    )
+                  ) : null}
                 </tr>
               ))}
             </tbody>

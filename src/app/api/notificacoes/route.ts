@@ -4,6 +4,7 @@ import {
   novaNotificacao,
   lerNotificacao,
   arquivarNotificacao,
+  aceitarConvite,
 } from "../../../../controllers/Notificacoes/notificacoesController";
 
 export async function GET(req: NextRequest) {
@@ -72,7 +73,9 @@ export async function PATCH(req: NextRequest) {
     const data = await req.json();
     const notificacaoId = data.notificacaoId;
     const lido = data.lido;
+    const aceito = data.aceito;
 
+    // Verifica se existe `notificacaoId` e `lido`
     if (notificacaoId && lido !== undefined) {
       try {
         const notificacaoLida = await lerNotificacao(notificacaoId, lido);
@@ -84,8 +87,22 @@ export async function PATCH(req: NextRequest) {
           { status: 500 }
         );
       }
-    } else {
-      // Retorno caso notificacaoId ou lido sejam inválidos
+    } 
+    // Verifica se existe `notificacaoId` e `aceito`
+    else if (notificacaoId && aceito !== undefined) {
+      try {
+        const conviteAceito = await aceitarConvite(notificacaoId, aceito);
+        return NextResponse.json(conviteAceito, { status: 200 });
+      } catch (error) {
+        console.error("Erro ao tentar aceitar/recusar convite em API:", error);
+        return NextResponse.json(
+          { error: "Erro ao tentar aceitar/recusar convite em API" },
+          { status: 500 }
+        );
+      }
+    } 
+    // Caso `notificacaoId` não exista ou nenhum dos outros parâmetros tenha sido fornecido
+    else {
       return NextResponse.json(
         { error: "Dados inválidos fornecidos." },
         { status: 400 }
@@ -99,6 +116,7 @@ export async function PATCH(req: NextRequest) {
     );
   }
 }
+
 
 export async function DELETE(req: NextRequest) {
   if (req.method === "DELETE") {

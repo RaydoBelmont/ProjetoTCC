@@ -6,15 +6,6 @@ export const buscaNotificacoesPorUsuario = async (userId: number) => {
         where: {
           userId: userId, // Filtra pelo ID do usuário
         },
-        select: {
-          id: true,
-          tipo: true,
-          mensagem: true,
-          workspaceId: true,
-          dataCriacao: true,
-          lido: true,
-          arquivado: true,
-        },
         orderBy: {
           dataCriacao: 'desc', // Ordena as notificações pela data de criação, do mais recente para o mais antigo
         },
@@ -81,6 +72,24 @@ export const buscaNotificacoesPorUsuario = async (userId: number) => {
       return notificacaoAtualizada.arquivado;
     } catch (error) {
       console.error('Erro ao atualizar o status de arquivamento da notificação:', error);
+      return null; // Retorna null em caso de erro
+    }
+  };
+  
+  export const conviteAceito = async (notificacaoId: number, aceito: boolean) => {
+    try {
+      const conviteAceito = await prisma.notificacao.update({
+        where: {
+          id: notificacaoId, // ID da notificação a ser atualizada
+        },
+        data: {
+          aceito: aceito, // Define se a notificação está arquivada ou não
+        },
+      });
+  
+      return conviteAceito.aceito;
+    } catch (error) {
+      console.error('Erro ao ACEITAR notificação em model:', error);
       return null; // Retorna null em caso de erro
     }
   };

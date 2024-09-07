@@ -1,7 +1,7 @@
-export const listaSetores = async (idWorkspace: number, idUser: number) => {
+export const listaSetores = async (idWorkspace: number) => {
     try {
       const response = await fetch(
-        "/api/workspace/setor?idWorkspace=" + idWorkspace + "&idUser=" + idUser
+        "/api/workspace/setor?idWorkspace=" + idWorkspace
       );
       const data = await response.json();
       if (data && Array.isArray(data)) {

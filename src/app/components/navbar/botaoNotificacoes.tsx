@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Popover,
   PopoverHandler,
@@ -8,9 +8,10 @@ import {
   Button,
 } from "../../lib/material-tailwindcss/material-tailwindcss";
 import { buscarNotificacoesDoUser } from "@/app/lib/NotificacoesFunctions/libBuscarNotificacoes";
-import { lerNaoLerNotificacao } from "@/app/lib/NotificacoesFunctions/libLerNaoLer";
+import { libLerNotificacao } from "@/app/lib/NotificacoesFunctions/libLerNotificacao";
 import { arquivarNotificacao } from "@/app/lib/NotificacoesFunctions/libArquivarNotificacao";
 import { buscaIdUserPorEmail } from "@/app/lib/UserFunctions/buscaIDuser";
+import { inserirMembroNaWorkspace } from "@/app/lib/WorkspaceFunctions/Membros/libInsereMembroNaWorkspace";
 import { useSession } from "next-auth/react";
 
 type Notificacao = {
@@ -21,6 +22,8 @@ type Notificacao = {
   dataCriacao: Date;
   lido: boolean;
   arquivado: boolean;
+  dataExpira: Date;
+  aceito: boolean;
 };
 
 export default function BotaoNotificacoes() {
@@ -28,36 +31,52 @@ export default function BotaoNotificacoes() {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const { data: session } = useSession();
 
-  const marcarComoLido = async (notificacaoId: number, lido: boolean) => {
-    // Função para marcar a notificação como lida
-    lerNaoLerNotificacao(notificacaoId, lido);
+  const marcarComoLido = useCallback(
+    async (notificacaoId: number, lido: boolean) => {
+      await libLerNotificacao(notificacaoId, lido);
+      atualizarNotificacoes(); // Atualiza a lista ao marcar como lido
+    },
+    []
+  );
+
+  const marcarComoArquivado = useCallback(
+    async (notificacaoId: number, arquivado: boolean) => {
+      await arquivarNotificacao(notificacaoId, arquivado);
+      atualizarNotificacoes(); // Atualiza a lista ao arquivar
+    },
+    []
+  );
+
+  const ingressarNaWorkspace = async (notificacao: Notificacao) => {
+    const userId = await buscaIdUserPorEmail(session?.user?.email);
+    console.log(userId, notificacao.workspaceId);
+    inserirMembroNaWorkspace(userId, notificacao.workspaceId);
+    if (notificacao.lido === false) {
+      marcarComoLido(notificacao.id, true);
+    }
+    marcarComoArquivado(notificacao.id, true);
   };
 
-  const marcarComoArquivado = async (notificacaoId: number, arquivado: boolean) => {
-    // Função para marcar a notificação como arquivada
-    arquivarNotificacao(notificacaoId, arquivado)
-  };
-
-  const ingressarNaWorkspace = (workspaceId: number) => {
-    
-  }
+  const atualizarNotificacoes = useCallback(async () => {
+    if (session && session.user) {
+      const userId = await buscaIdUserPorEmail(session?.user?.email);
+      const notificacoes = await buscarNotificacoesDoUser(Number(userId));
+      if (notificacoes) {
+        const notificacoesNaoLidasNaoArquivadas = notificacoes.filter(
+          (n) => !n.lido && !n.arquivado
+        );
+        setTotalNotificacoes(notificacoesNaoLidasNaoArquivadas.length);
+        setNotificacoes(notificacoes.filter((n) => !n.arquivado));
+      }
+    }
+  }, [session]);
 
   useEffect(() => {
-    if (session && session.user) {
-      const fetchNotificacoes = async () => {
-        const userId = await buscaIdUserPorEmail(session?.user?.email);
-        const notificacoes = await buscarNotificacoesDoUser(Number(userId));
-        if (notificacoes) {
-          const notificacoesNaoLidasNaoArquivadas = notificacoes.filter(
-            (n) => !n.lido && !n.arquivado
-          );
-          setTotalNotificacoes(notificacoesNaoLidasNaoArquivadas.length);
-          setNotificacoes(notificacoes.filter((n) => !n.arquivado));
-        }
-      };
-      fetchNotificacoes();
-    }
-  }, [session, marcarComoLido]);
+    atualizarNotificacoes();
+    // Intervalo para buscar novas notificações a cada 30 segundos (ou a cada tempo que preferir)
+    // const interval = setInterval(atualizarNotificacoes, 30000);
+    // return () => clearInterval(interval); // Limpa o intervalo ao desmontar
+  }, [atualizarNotificacoes]);
 
   // Função para formatar a data no estilo DD/MM/AAAA - HH:MM
   const formatarData = (dataCriacao: Date) => {
@@ -99,63 +118,101 @@ export default function BotaoNotificacoes() {
           <Typography variant="h4" className="p-1 text-white">
             Notificações
           </Typography>
-          {notificacoes.map((notificacao) => (
-            <div
-              key={notificacao.id}
-              className="flex flex-col p-2 mt-2 justify-between bg-gray-300 rounded "
-            >
-              {/* Mostrando a data da notificação formatada */}
-              <Typography
-                variant="small"
-                className="text-xs text-gray-500 mb-1 ml-1"
+          {notificacoes.length === 0 ? (
+            <Typography variant="small" className="text-center text-gray-400">
+              Nenhuma notificação disponível.
+            </Typography>
+          ) : (
+            notificacoes.map((notificacao) => (
+              <div
+                key={notificacao.id}
+                className="flex flex-col p-2 mt-2 justify-between bg-gray-300 rounded "
               >
-                {formatarData(notificacao.dataCriacao)}
-              </Typography>
-
-              <div className="flex gap-2 pb-2 px-1 ">
-                <Typography variant="small" className="font-medium">
-                  {notificacao.mensagem}
+                {/* Mostrando a data da notificação formatada */}
+                <Typography
+                  variant="small"
+                  className="text-xs text-gray-500 mb-1 ml-1"
+                >
+                  {formatarData(notificacao.dataCriacao)}
                 </Typography>
-                <div className="flex justify-end gap-2">
-                  {notificacao.lido === false ? (
-                    <button
-                      className="transition"
-                      onClick={() => marcarComoLido(notificacao.id, true)}
-                    >
-                      ✔️
-                    </button>
-                  ) : (
-                    <button
-                      className="text-green-500 hover:text-green-600 transition"
-                      onClick={() => marcarComoLido(notificacao.id, false)}
-                    >
-                      👁️‍🗨️
-                    </button>
-                  )}
-                  <button
-                    onClick={() => marcarComoArquivado(notificacao.id, true)}
-                    className="text-blue-500 hover:text-blue-600 transition"
-                  >
-                    📦
-                  </button>
-                </div>
-              </div>
 
-              {notificacao.tipo === "CONVITE_WS" ? (
-                <div className="flex flex-col">
-                  <div className="border-b border-gray-500 my-2"></div>
-                  <div className="flex gap-1 py-1">
-                    <Button color="green" size="sm" variant="gradient">
-                      Aceitar
-                    </Button>
-                    <Button color="red" size="sm" variant="gradient">
-                      Recusar
-                    </Button>
+                <div className="flex gap-2 pb-2 px-1 ">
+                  <Typography variant="small" className="font-medium">
+                    {notificacao.mensagem}
+                  </Typography>
+                  <div className="flex justify-end gap-2">
+                    {notificacao.lido === false ? (
+                      <button
+                        className="transition"
+                        onClick={() => marcarComoLido(notificacao.id, true)}
+                      >
+                        ✔️
+                      </button>
+                    ) : (
+                      <button
+                        className="text-green-500 hover:text-green-600 transition"
+                        onClick={() => marcarComoLido(notificacao.id, false)}
+                      >
+                        👁️‍🗨️
+                      </button>
+                    )}
+                    <button
+                      onClick={() => marcarComoArquivado(notificacao.id, true)}
+                      className="text-blue-500 hover:text-blue-600 transition"
+                    >
+                      📦
+                    </button>
                   </div>
                 </div>
-              ) : null}
-            </div>
-          ))}
+
+                {notificacao.tipo === "CONVITE_WS" ? (
+                  notificacao.aceito === true ? (
+                    <div className="flex flex-col">
+                      <div className="border-b border-gray-500 my-2"></div>
+                      <Button
+                        color="gray"
+                        size="sm"
+                        variant="gradient"
+                        disabled
+                      >
+                        Convite Aceito
+                      </Button>
+                    </div>
+                  ) : notificacao.dataExpira &&
+                    new Date(notificacao.dataExpira) < new Date() ? (
+                    <div className="flex flex-col">
+                      <div className="border-b border-gray-500 my-2"></div>
+                      <Button
+                        color="gray"
+                        size="sm"
+                        variant="gradient"
+                        disabled
+                      >
+                        Convite Expirado
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-col">
+                      <div className="border-b border-gray-500 my-2"></div>
+                      <div className="flex gap-1 py-1">
+                        <Button
+                          color="green"
+                          size="sm"
+                          variant="gradient"
+                          onClick={() => ingressarNaWorkspace(notificacao)}
+                        >
+                          Aceitar
+                        </Button>
+                        <Button color="red" size="sm" variant="gradient">
+                          Recusar
+                        </Button>
+                      </div>
+                    </div>
+                  )
+                ) : null}
+              </div>
+            ))
+          )}
         </PopoverContent>
       </Popover>
     </div>

@@ -1,6 +1,5 @@
 import React, { useEffect } from "react";
 import { useState } from "react";
-import ModalCadClientes from "./Modal/modalCadClientes";
 import { buscarClientes } from "../../../lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
 import { libDesativarCliente } from "../../../lib/WorkspaceFunctions/Clientes/desativarCliente";
 import { libAtivarCliente } from "../../../lib/WorkspaceFunctions/Clientes/ativarCliente";

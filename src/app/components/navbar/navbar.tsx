@@ -33,6 +33,9 @@ const Navbar: React.FC = () => {
         JSON.stringify(idWorkspace),
         secretKey
       ).toString();
+
+      document.cookie = `workspaceId=${encodeURIComponent(encryptedData)}; path=/`;
+
       sessionStorage.setItem("email", String(session?.user?.email));
       sessionStorage.setItem("workspaceId", String(idWorkspace));
       sessionStorage.setItem("workspaceName", nome);

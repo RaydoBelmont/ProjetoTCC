@@ -2,7 +2,8 @@ export const inserirNotificacao = async (
     userId: number,
     tipo: string,
     mensagem: string,
-    workspaceId?: number 
+    workspaceId?: number ,
+    dataExpira?: Date
   ) => {
     try {
       const response = await fetch('/api/notificacoes', {
@@ -15,6 +16,7 @@ export const inserirNotificacao = async (
           tipo: tipo,
           mensagem: mensagem,
           idWorkspace: workspaceId || null, // Se workspaceId não for fornecido, envia null
+          dataExpira:  dataExpira || null
         }),
       });
 

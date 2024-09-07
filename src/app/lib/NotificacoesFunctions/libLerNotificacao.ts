@@ -1,4 +1,4 @@
-export const lerNaoLerNotificacao = async (
+export const libLerNotificacao = async (
   notificacaoId: number,
   lido: boolean
 ) => {

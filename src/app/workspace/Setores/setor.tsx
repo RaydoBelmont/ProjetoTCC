@@ -1,12 +1,14 @@
 import { useRouter } from "next/navigation";
-import CryptoJS from "crypto-js";
-import BotaoSetor from "../navbar/botões/Setores/setor";
+import { Button } from "../../lib/material-tailwindcss/material-tailwindcss";
+import ModalCadSetor from "./modalCadSetor/modalCad";
+import { useState } from "react";
+import { FaEdit } from "react-icons/fa";
 
 type PropsSetor = {
-  idWorkspace: number | null;
-  nomeWorkspace: string | null;
-  idUser: number | null;
-  isAdmin: boolean | null;
+  idWorkspace: number;
+  nomeWorkspace: string;
+  isAdmin: boolean;
+  atualizarSetores: (idWorkspace: number) => void;
   Setor: {
     id: number;
     nome: string;
@@ -14,30 +16,16 @@ type PropsSetor = {
 };
 
 export default function Setor(props: PropsSetor) {
-  const router = useRouter();
-  const secretKey = String(process.env.CHAVE_CRIPTO);
-  const data = {
-    idWorkspace: props.idWorkspace,
-    nomeWorkspace: props.nomeWorkspace,
-    idUser: props.idUser,
-    isAdmin: props.isAdmin,
-  };
+  const [isOpen, setIsOpen] = useState(false);
+  const [tipoModal, setTipoModal] = useState("");
+  const [idSetor, setIdSetor] = useState<number>();
 
-  const encryptedParams = CryptoJS.AES.encrypt(
-    JSON.stringify(data),
-    secretKey
-  ).toString();
-
-  const redirecionar = (setorId: number) => {
-    const encryptedSetor = CryptoJS.AES.encrypt(
-      String(setorId),
-      secretKey
-    ).toString();
-    router.push(
-      `/workspace/${encodeURIComponent(encryptedParams)}/${encodeURIComponent(
-        encryptedSetor
-      )}`
-    );
+  const acaoAbrirModal = (tipo: string, idSetorEditar?: number) => {
+    setTipoModal(tipo);
+    if (idSetorEditar) {
+      setIdSetor(idSetorEditar);
+    }
+    setIsOpen(true);
   };
 
   return (
@@ -47,20 +35,32 @@ export default function Setor(props: PropsSetor) {
           Setores de {props.nomeWorkspace}
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <BotaoSetor
+          <Button
+            className="bg-[#202938] text-xl normal-case text-teal-300"
+            onClick={() => acaoAbrirModal("INSERIR")}
+          >
+            + Novo Setor
+          </Button>
+          <ModalCadSetor
+            isOpen={isOpen}
+            setModalOpen={() => setIsOpen(!isOpen)}
             idWorkspace={props.idWorkspace}
-            userId={props.idUser}
-            usoTela={true}
-          ></BotaoSetor>
+            atualizarSetores={props.atualizarSetores}
+            tipoModal={tipoModal}
+            setorId={idSetor}
+          />
           {props.Setor.map((setor, index) => (
-            <button
-              key={index}
-              value={setor.id}
-              className="bg-[#212938] p-4 rounded-lg shadow-md text-teal-300 text-xl font-semibold"
-              onClick={() => redirecionar(setor.id)}
-            >
-              {setor.nome}
-            </button>
+            <div key={index} className="flex ">
+              <Button className="bg-[#202938] text-xl normal-case text-teal-300 w-full">
+                {setor.nome}
+              </Button>
+              <button
+                className=" bg-[#2d96c8] text-black normal-case text-xl pl-4 pr-4 rounded-lg"
+                onClick={() => acaoAbrirModal("EDITAR", setor.id)}
+              >
+                <FaEdit className="text-xl" />
+              </button>
+            </div>
           ))}
         </div>
       </div>

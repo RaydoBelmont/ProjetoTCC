@@ -99,3 +99,21 @@ export const buscaMembroWorkspace = async (workspaceId: number, userId: number) 
     return null; // Retorna null em caso de erro
   }
 };
+
+export const inserirMembroNaWorkspace = async (userId: number, workspaceId: number) => {
+  try {
+    const membroWorkspace = await prisma.workspaceUser.create({
+      data: {
+        userId,
+        workspaceId,
+        isAdmin: false,
+        isCriador: false
+      },
+
+    });
+    return membroWorkspace;
+  } catch (error) {
+    console.error("Erro ao criar a workspace:", error);
+    throw new Error("Ocorreu um erro ao criar a workspace.");
+  }
+};

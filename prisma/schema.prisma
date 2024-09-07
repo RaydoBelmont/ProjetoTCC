@@ -12,8 +12,7 @@ model User {
   nome       String
   email      String          @unique
   workspaces WorkspaceUser[]
-  chamados   ChamadoUser[]
-  setores     SetorUser[]     
+  chamados   ChamadoUser[]  
   notificacoes Notificacao[]
 }
 
@@ -99,18 +98,9 @@ model Setor {
   workspaceId Int
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   quadros     Quadro[]
-  usuarios    SetorUser[]   
 }
 
-model SetorUser {
-  setorId     Int
-  userId      Int
-  isAdmin     Boolean
-  setor       Setor     @relation(fields: [setorId], references: [id])
-  user        User      @relation(fields: [userId], references: [id])
 
-  @@id([setorId, userId])
-}
 
 
 model Quadro {
@@ -136,7 +126,9 @@ model Notificacao {
   tipo          String
   mensagem      String
   workspaceId   Int?      // Pode ser opcional, dependendo do tipo da notificação
+  aceito        Boolean @default(false)
   dataCriacao   DateTime  @default(now())
+  dataExpira    DateTime?  
   lido          Boolean   @default(false)
   arquivado     Boolean @default(false)
   user          User      @relation(fields: [userId], references: [id])

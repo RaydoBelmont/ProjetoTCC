@@ -3,6 +3,7 @@ import {
   listarMembrosWorkspace,
   getMembroWorkspace,
   setarAdmin,
+  insereMembroNaWorkspace
 } from "../../../../../controllers/Workspace/MembrosWorkspace/membrosController";
 
 export async function GET(request: NextRequest) {
@@ -31,6 +32,34 @@ export async function GET(request: NextRequest) {
         );
       }
     }
+  }
+}
+
+export async function POST(request: NextRequest) {
+  if (request.method === "POST") {
+    const data = await request.json();
+    const userId = Number(data.userId);
+    const workspaceId = Number(data.workspaceId);
+
+ 
+
+    if (userId && workspaceId) {
+      try {
+        const membroWorkspace = await insereMembroNaWorkspace(userId,workspaceId);
+        return NextResponse.json(membroWorkspace, { status: 200 });
+      } catch (error) {
+        console.error("Erro ao tentar inserir um Membro na Workspace em API:", error);
+        return NextResponse.json(
+          { error: "Erro ao tentar inserir um Membro na Workspace em API" },
+          { status: 500 }
+        );
+      }
+    }
+  } else {
+    return NextResponse.json(
+      { error: "Método não permitido em API." },
+      { status: 405 }
+    );
   }
 }
 

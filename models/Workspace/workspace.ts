@@ -15,12 +15,12 @@ export const createWorkspace = async (nome: string, userEmail: string) => {
           create: {
             userId,
             isAdmin: true,
-            isCriador: true // Defina como true se desejar que o usuário criador seja um administrador da workspace
+            isCriador: true
           },
         },
       },
       include: {
-        users: true, // Inclui os usuários associados à nova workspace na resposta
+        users: true,
       },
     });
     return newWorkspace;
@@ -136,3 +136,5 @@ export const checkAdminStatus = async (
     console.error("Erro ao obter as Admin do usuário:", error);
   }
 };
+
+

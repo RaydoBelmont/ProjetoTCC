@@ -3,8 +3,9 @@ import {
   inserirNotificacao,
   marcarNotificacaoComoLido,
   marcarNotificacaoComoArquivada,
+  conviteAceito,
 } from "../../models/Notificacoes/notificacoesModel";
-
+''
 export const buscaNotificacoes = async (userId: number) => {
   try {
     const notificacoes = await buscaNotificacoesPorUsuario(userId);
@@ -48,5 +49,14 @@ export const arquivarNotificacao = async (notificacaoId: number, arquivado: bool
         return notificacaoArquivada
     } catch (error) {
         console.error("Erro ao ARQUIVAR notificação em Controller", error);     
+    }
+}
+
+export const aceitarConvite = async (notificacaoId: number, aceito: boolean) => {
+    try {
+        const notificacaoAceita = await conviteAceito(notificacaoId,aceito)
+        return notificacaoAceita
+    } catch (error) {
+        console.error("Erro ao ACEITAR notificação em Controller", error);     
     }
 }
