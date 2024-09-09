@@ -5,17 +5,19 @@ import Loading from "./Loading";
 import Navbar from "../navbar/navbar";
 import Setor from "../Setores/setor";
 import {
+  buscaIdUserPorEmail,
   buscaUsuarioAdmin,
 } from "../../lib/UserFunctions/buscaIDuser";
 import { listaSetores } from "@/app/lib/SetoresFunctions/listarSetoresIdWorkspaceIdUser";
 import CryptoJS from "crypto-js";
-import { redirect,  } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Membro } from "../Membros/Tabela/TabelaMembros";
 import TableMembros from "../Membros/Tabela/TabelaMembros";
 import { buscaMembrosWorkspace } from "../../lib/WorkspaceFunctions/Membros/buscaMembrosDaWorkspace";
 import Clientes from "./Clientes/clientes";
-import { useParams } from 'next/navigation';
-
+import { buscaNomeWorkspace } from "@/app/lib/WorkspaceFunctions/Workspace/libBuscaNomeWorkspace";
+import { verificaUsuarioComWorkspace } from "@/app/lib/WorkspaceFunctions/Workspace/libVerificaUsuarioComWorkspace";
+import { useParams } from "next/navigation";
 
 export interface setor {
   id: number;
@@ -24,106 +26,130 @@ export interface setor {
 }
 
 const Workspace: React.FC = () => {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [workspaceId, setWorkspaceId] = useState<number | null>(null);
   const [workspaceName, setWorkspaceName] = useState<string | null>(null);
   const [idUser, setIdUser] = useState<number | null>(null);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [verificaEmail, setVerificaEmail] = useState<boolean | null>(null);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [setores, setSetores] = useState<setor[]>([]);
   const [switchPagina, setSwitchPagina] = useState<number>(0);
   const [membros, setMembros] = useState<Membro[]>([]);
-
+  const router = useRouter(); 
+  const { idWorkspace } = useParams();
 
   const setaPagina = (numeroPagina: number) => {
     setSwitchPagina(numeroPagina);
   };
 
-  const buscaEsetaMembros = async () => {
-    if (session && session.user) {
-      const storedWorkspaceId = Number(sessionStorage.getItem("workspaceId"));
-      const idWorkspace = storedWorkspaceId;
-      const membros = await buscaMembrosWorkspace(idWorkspace);
-      setMembros(membros);
+  // Função para verificar a sessão e o usuário na workspace
+  const verificacaoDeUsuario = async (idWorkspace: number) => {
+    try {
+      const verificado = await verificaUsuarioComWorkspace(
+        String(session.user.email),
+        idWorkspace
+      );
+      return verificado;
+    } catch (error) {
+      return false;
     }
   };
 
-  const atualizaSetores = async (workspaceId: number) => {
-    try {
-      const setores = await listaSetores(workspaceId);
-      if(setores){
-        setSetores(setores)
-      }
-    } catch (error) {
-      console.log("Erro ao buscar setores.")
-    }
-  }
-
-  const { idWorkspace } = useParams();
-
   useEffect(() => {
-    const storedEmail = sessionStorage.getItem("email");
-    const storedIdUser = Number(sessionStorage.getItem("idUser"));
-    const storedWorkspaceId = Number(sessionStorage.getItem("workspaceId"));
-    setWorkspaceId(storedWorkspaceId);
-    setWorkspaceName(String(sessionStorage.getItem("workspaceName")));
-    setIdUser(storedIdUser);
+    if (status === "loading") return; // Aguarda o carregamento da sessão
 
-    
-    const encryptedData = String(idWorkspace)
-    console.log(encryptedData)
-    if (encryptedData) {
-      const secretKey = String(process.env.CHAVE_CRIPTO);
-      try {
-        const bytes = CryptoJS.AES.decrypt(
-          decodeURIComponent(encryptedData),
-          secretKey
-        );
-        const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-        console.log(decryptedData);
-      } catch (error) {
-        console.error("Erro ao descriptografar dados:", error);
-      }
-    }
+    if (session && session?.user) {
+      if (idWorkspace) {
+        try {
+          const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
+          const bytes = CryptoJS.AES.decrypt(
+            decodeURIComponent(String(idWorkspace)),
+            secretKey
+          );
+          const decryptedId = Number(
+            JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+          );
 
-    const buscaESetaSetores = async () => {
-      if (session && session.user) {
-        const emailUser = String(session?.user?.email);
-        if (emailUser == storedEmail) {
-          setVerificaEmail(true);
-          const dataSetores = await listaSetores(Number(storedWorkspaceId));
-          setSetores(dataSetores);
-        } else {
-          setVerificaEmail(false);
+          // Verifica primeiro o usuário com a workspace antes de prosseguir
+          const fetchVerificacao = async () => {
+            const verificado = await verificacaoDeUsuario(decryptedId);
+
+            if (!verificado) {
+              router.push("/");
+              return; // Interrompe a execução caso o usuário não seja autorizado
+            }
+
+            // Se verificado, define o ID da workspace e carrega os dados adicionais
+            setWorkspaceId(decryptedId);
+
+            await Promise.all([
+              buscaESetaSetores(decryptedId),
+              buscaEsetaMembros(decryptedId),
+              buscaEsetaAdmin(decryptedId),
+              buscaIdUser(),
+              buscarNomeDaWorkspace(decryptedId),
+            ]);
+
+            setIsLoading(true); // Indica que os dados foram carregados com sucesso
+          };
+
+          fetchVerificacao();
+        } catch (error) {
+          console.error("Erro ao descriptografar o ID da workspace:", error);
         }
+      } else {
+        router.push("/");
       }
-    };
-
-    const buscaEsetaAdmin = async () => {
-      if (session && session.user) {
-        const emailUser = String(session?.user?.email);
-        const idWorkspace = storedWorkspaceId;
-        if (emailUser == storedEmail) {
-          const admin = await buscaUsuarioAdmin(emailUser, Number(idWorkspace));
-          setIsAdmin(Boolean(admin));
-        } else {
-          setIsAdmin(false);
-        }
-      }
-    };
-
-    if (session && session.user) {
-      const buscaDadosIniciais = async () => {
-        await Promise.all([
-          buscaEsetaMembros(),
-          buscaESetaSetores(),
-          buscaEsetaAdmin()
-        ]);
-      };
-  
-      buscaDadosIniciais();
     }
   }, [session]);
+
+  const buscaESetaSetores = async (idWorkspace: number) => {
+    try {
+      const dataSetores = await listaSetores(idWorkspace);
+      if (dataSetores) setSetores(dataSetores);
+    } catch (error) {
+      console.error("Erro ao buscar Setores:", error);
+    }
+  };
+
+  const buscaEsetaMembros = async (idWorkspace: number) => {
+    try {
+      const dataMembros = await buscaMembrosWorkspace(idWorkspace);
+      if (dataMembros) setMembros(dataMembros);
+    } catch (error) {
+      console.log("Erro ao buscar membros.");
+    }
+  };
+
+  const buscaEsetaAdmin = async (idWorkspace: number) => {
+    try {
+      const emailUser = String(session?.user?.email);
+      const dataAdmin = await buscaUsuarioAdmin(emailUser, idWorkspace);
+      if (dataAdmin) setIsAdmin(Boolean(dataAdmin.isAdmin));
+    } catch (error) {
+      console.log("Erro ao buscar Admin.");
+    }
+  };
+
+  const buscaIdUser = async () => {
+    try {
+      const dataUser = await buscaIdUserPorEmail(String(session.user.email));
+      if (dataUser) setIdUser(dataUser);
+    } catch (error) {
+      console.error("Erro ao buscar ID do usuário:", error);
+      return null;
+    }
+  };
+
+  const buscarNomeDaWorkspace = async (idWorkspace: number) => {
+    try {
+      const dataWorkspace = await buscaNomeWorkspace(idWorkspace);
+      if (dataWorkspace) setWorkspaceName(dataWorkspace.nome);
+    } catch (error) {
+      console.error("Erro ao buscar nome da Worksapce:", error);
+      return null;
+    }
+  };
 
   const renderPageContent = () => {
     switch (switchPagina) {
@@ -134,7 +160,7 @@ const Workspace: React.FC = () => {
             nomeWorkspace={workspaceName}
             isAdmin={isAdmin}
             Setor={setores}
-            atualizarSetores={atualizaSetores}
+            atualizarSetores={buscaESetaSetores}
           />
         );
       case 1:
@@ -150,15 +176,14 @@ const Workspace: React.FC = () => {
       case 2:
         return <Clientes idWorkspace={workspaceId} />;
 
-      // Adicione mais cases conforme necessário
       default:
         return <div>Conteúdo padrão ou uma mensagem de erro.</div>;
     }
   };
 
-  if (verificaEmail === null) {
+  if (isLoading === null && isLoading === false) {
     return <Loading />;
-  } else if (verificaEmail) {
+  } else {
     return (
       <main className=" flex flex-col w-full justify-between h-auto">
         <Navbar
@@ -171,8 +196,6 @@ const Workspace: React.FC = () => {
         {renderPageContent()}
       </main>
     );
-  } else {
-    return redirect("/");
   }
 };
 

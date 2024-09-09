@@ -90,10 +90,8 @@ const authOptions  =  ({
               },
             });
             if (novoUsuario) {
-              console.log("Novo usuário criado:", novoUsuario);
               return true
             } else {
-              console.log("Usuário existente:", novoUsuario);
               return false
             }
           } catch (error) {

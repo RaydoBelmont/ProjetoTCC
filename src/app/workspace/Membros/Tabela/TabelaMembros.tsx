@@ -25,7 +25,7 @@ export interface Membro {
 
 interface MembrosWorkspaceProps {
   membros: Membro[];
-  atualizarMembros: () => void;
+  atualizarMembros: (idWorkspace: number) => void;
   idWorkspace: number;
   nomeWorkspace: string;
   userAdmin: boolean;
@@ -99,7 +99,7 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
   ) => {
     try {
       const membroAtualizado = await setarAdmin(idMembro, idWorkspace, isAdmin);
-      if (membroAtualizado) props.atualizarMembros();
+      if (membroAtualizado) props.atualizarMembros(idWorkspace);
     } catch (error) {
       console.error("Erro ao atualizar membro:", error);
     }

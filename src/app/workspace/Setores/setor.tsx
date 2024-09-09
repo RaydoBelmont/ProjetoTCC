@@ -35,31 +35,38 @@ export default function Setor(props: PropsSetor) {
           Setores de {props.nomeWorkspace}
         </h1>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <Button
-            className="bg-[#202938] text-xl normal-case text-teal-300"
-            onClick={() => acaoAbrirModal("INSERIR")}
-          >
-            + Novo Setor
-          </Button>
-          <ModalCadSetor
-            isOpen={isOpen}
-            setModalOpen={() => setIsOpen(!isOpen)}
-            idWorkspace={props.idWorkspace}
-            atualizarSetores={props.atualizarSetores}
-            tipoModal={tipoModal}
-            setorId={idSetor}
-          />
+          {props.isAdmin && (
+            <>
+              <Button
+                className="bg-[#202938] text-xl normal-case text-teal-300"
+                onClick={() => acaoAbrirModal("INSERIR")}
+              >
+                + Novo Setor
+              </Button>
+              <ModalCadSetor
+                isOpen={isOpen}
+                setModalOpen={() => setIsOpen(!isOpen)}
+                idWorkspace={props.idWorkspace}
+                atualizarSetores={props.atualizarSetores}
+                tipoModal={tipoModal}
+                setorId={idSetor}
+              />
+            </>
+          )}
+
           {props.Setor.map((setor, index) => (
             <div key={index} className="flex ">
               <Button className="bg-[#202938] text-xl normal-case text-teal-300 w-full">
                 {setor.nome}
               </Button>
-              <button
-                className=" bg-[#2d96c8] text-black normal-case text-xl pl-4 pr-4 rounded-lg"
-                onClick={() => acaoAbrirModal("EDITAR", setor.id)}
-              >
-                <FaEdit className="text-xl" />
-              </button>
+              {props.isAdmin && (
+                <button
+                  className=" bg-[#2d96c8] text-black normal-case text-xl pl-4 pr-4 rounded-lg"
+                  onClick={() => acaoAbrirModal("EDITAR", setor.id)}
+                >
+                  <FaEdit className="text-xl" />
+                </button>
+              )}
             </div>
           ))}
         </div>
