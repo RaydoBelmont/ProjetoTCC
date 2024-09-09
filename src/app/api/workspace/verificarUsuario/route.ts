@@ -6,6 +6,7 @@ export async function GET(request: NextRequest) {
   try {
     // Obter e verificar se "data" está presente nos parâmetros de consulta
     const data = request.nextUrl.searchParams.get("data");
+    
     if (!data) {
       return NextResponse.json({ error: "Parâmetro 'data' ausente" }, { status: 400 });
     }

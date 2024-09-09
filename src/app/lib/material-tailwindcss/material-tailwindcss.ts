@@ -24,6 +24,8 @@ import {
     Popover,
     PopoverHandler,
     PopoverContent,
+    MobileNav,
+    Navbar
   } from "@material-tailwind/react";
  
 export {
@@ -50,4 +52,6 @@ export {
   Popover,
   PopoverHandler,
   PopoverContent,
+  MobileNav,
+  Navbar
 };

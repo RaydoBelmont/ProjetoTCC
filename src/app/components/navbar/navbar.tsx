@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import { buscaIdUserPorEmail } from "../../lib/UserFunctions/buscaIDuser";
 import CryptoJS from "crypto-js";
 import PerfilUser from "./perfilUser";
+import Image from "next/image";
 
 export interface workspace {
   id: number;
@@ -33,7 +34,7 @@ const Navbar: React.FC = () => {
         JSON.stringify(idWorkspace),
         secretKey
       ).toString();
-      
+
       router.push(`/workspace/${encodeURIComponent(encryptedData)}`);
     }
   };
@@ -78,15 +79,19 @@ const Navbar: React.FC = () => {
         {session && session.user ? (
           <div className="border-b border-gray-400 my-4"></div>
         ) : (
-          <div
-            className="flex items-center justify-center bg-[#202938] p-2 rounded-lg"
-            style={{ width: "200px", height: "100px" }}
-          >
-            <img
-              src="/images/LOGO2.png"
-              alt="Logo"
-              className="object-contain w-full h-full"
-            />
+          <div className="flex items-center bg-[#202938] p-1 rounded-lg shadow-md gap-4 justify-start w-full">
+            <div className="flex p-2 justify-between items-center">
+              <Image
+                src="/images/LOGO2.png"
+                width={35}
+                height={35}
+                className="rounded-full"
+                alt="Imagem Logo"
+              />
+            </div>
+            <div className="text-center">
+              <h2 className="text-lg font-semibold">GAES</h2>
+            </div>
           </div>
         )}
         {menuItems.map((item, index) =>

@@ -31,22 +31,6 @@ export default function BotaoNotificacoes() {
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const { data: session } = useSession();
 
-  const marcarComoLido = useCallback(
-    async (notificacaoId: number, lido: boolean) => {
-      await libLerNotificacao(notificacaoId, lido);
-      atualizarNotificacoes(); // Atualiza a lista ao marcar como lido
-    },
-    []
-  );
-
-  const marcarComoArquivado = useCallback(
-    async (notificacaoId: number, arquivado: boolean) => {
-      await arquivarNotificacao(notificacaoId, arquivado);
-      atualizarNotificacoes(); // Atualiza a lista ao arquivar
-    },
-    []
-  );
-
   const ingressarNaWorkspace = async (notificacao: Notificacao) => {
     const userId = await buscaIdUserPorEmail(session?.user?.email);
     console.log(userId, notificacao.workspaceId);
@@ -70,6 +54,22 @@ export default function BotaoNotificacoes() {
       }
     }
   }, [session]);
+
+  const marcarComoLido = useCallback(
+    async (notificacaoId: number, lido: boolean) => {
+      await libLerNotificacao(notificacaoId, lido);
+      atualizarNotificacoes(); // Atualiza a lista ao marcar como lido
+    },
+    [atualizarNotificacoes]
+  );
+
+  const marcarComoArquivado = useCallback(
+    async (notificacaoId: number, arquivado: boolean) => {
+      await arquivarNotificacao(notificacaoId, arquivado);
+      atualizarNotificacoes(); // Atualiza a lista ao arquivar
+    },
+    [atualizarNotificacoes]
+  );
 
   useEffect(() => {
     atualizarNotificacoes();

@@ -20,15 +20,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <div className="flex">
+          <div className="flex w-screen">
             <div className="min-w-[200px]">
-              {" "}
-              {/* Definindo uma largura mínima */}
               <Navbar />
             </div>
-            <div className="flex-grow">
-              {" "}
-              {/* Deixe o conteúdo principal crescer conforme necessário */}
+            <div className="w-screen">
               {children}
             </div>
           </div>

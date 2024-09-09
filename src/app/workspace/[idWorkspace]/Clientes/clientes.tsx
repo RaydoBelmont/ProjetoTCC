@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { useState } from "react";
 import { buscarClientes } from "../../../lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
 import { libDesativarCliente } from "../../../lib/WorkspaceFunctions/Clientes/desativarCliente";
@@ -109,10 +109,10 @@ export default function Clientes(props: propsClientes) {
     }
   });
 
-  const buscaEsetaClientes = async () => {
+  const buscaEsetaClientes = useCallback(async () => {
     const clientes = await listarClientes(props.idWorkspace);
     setClientes(clientes);
-  };
+  }, [props.idWorkspace, listarClientes]);
 
   const handleSearchQueryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     let query = e.target.value;
@@ -138,7 +138,7 @@ export default function Clientes(props: propsClientes) {
 
   useEffect(() => {
     buscaEsetaClientes();
-  }, [props.idWorkspace]);
+  }, [props.idWorkspace, buscaEsetaClientes]);
 
   return (
     <div className="min-h-screen bg-[#111828] p-6">
