@@ -1,20 +1,30 @@
-import { getQuadros } from "../../models/Quadros/quadros";
+import { getQuadros,criarQuadro,editarQuadro } from "../../models/Quadros/quadros";
 
-// export const savarQuadro = async (nome: string, workspaceId: string) => {
-//     try {
-//       const novoQuadro = await createQuadros(nome, workspaceId);
-//       return novoQuadro
 
-//     } catch (error) {
-//       console.error(error);
-//     }
-//   };
-
-  export const listarQuadros = async (setorID: string) => {
-    try {
-      const quadros = await getQuadros(setorID);
-      return quadros
-    } catch (error) {
-      console.error('Erro ao obter as quadros do usuário:', error);
-    }
+export const listarQuadros = async (idSetor: number) => {
+  try {
+    const quadros = await getQuadros(idSetor);
+    return quadros
+  } catch (error) {
+    console.error('Erro ao obter Quadros em Controllet:', error);
   }
+}
+export const savarQuadro = async (nome: string, idSetor: number) => {
+    try {
+      const novoQuadro = await criarQuadro(nome, idSetor);
+      return novoQuadro
+
+    } catch (error) {
+      console.error('Erro ao criar Quadro em Controllet:', error);
+    }
+  };
+
+  export const editQuadro = async (nome: string, quadroId: number) => {
+    try {
+      const quadroEditado = await editarQuadro(nome, quadroId);
+      return quadroEditado
+
+    } catch (error) {
+      console.error('Erro ao editar Quadro em Controllet:', error);
+    }
+  };

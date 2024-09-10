@@ -1,26 +1,6 @@
 import prisma from "../../prisma/prisma";
 
-// export const createQuadros = async (nome: string, workspaceId: string) => {
-//   try {
-//     const newQuadro = await prisma.quadro.create({
-//       data: {
-//         nome,
-//         workspaceId: Number(workspaceId),
-//       },
-//     });
-
-//     return newQuadro;
-//   } catch (error) {
-//     console.error("Erro ao criar a Quadro:", error);
-//     throw new Error("Ocorreu um erro ao criar a Quadro.");
-//   }
-// };
-
-export const getQuadros = async (setorID: string) => {
-  const idSetor = Number(setorID);
-  if (isNaN(idSetor)) {
-    throw new Error("workspaceId fornecido não é um número válido");
-  }
+export const getQuadros = async (idSetor: number) => {
   try {
     const quadros = await prisma.quadro.findMany({
       where: { setorId: idSetor },
@@ -31,3 +11,35 @@ export const getQuadros = async (setorID: string) => {
     throw new Error("Erro ao buscar quadros");
   }
 };
+
+
+export const criarQuadro = async (nome: string, setorId: number) => {
+  try {
+    const newQuadro = await prisma.quadro.create({
+      data: {
+        nome: nome,
+        setorId: setorId
+      },
+    });
+    return newQuadro;
+  } catch (error) {
+    console.error("Erro ao criar a Quadro:", error);
+    throw new Error("Ocorreu um erro ao criar a Quadro.");
+  }
+};
+
+export const editarQuadro = async (nome: string, quadroId: number) => {
+  try {
+    const quadroEditado = await prisma.quadro.update({
+      where:{id: quadroId},
+      data: {
+        nome: nome
+      },
+    });
+    return quadroEditado;
+  } catch (error) {
+    console.error("Erro ao editar a Quadro:", error);
+    throw new Error("Ocorreu um erro ao editar a Quadro.");
+  }
+};
+

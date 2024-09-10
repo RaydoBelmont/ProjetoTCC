@@ -58,3 +58,25 @@ select {
 .btn-item-dropdown {
   @apply flex items-center w-full  gap-1 px-4 py-2 text-sm text-white font-medium hover:bg-gray-600 rounded-md;
 }
+
+/* Estilizando a barra de rolagem */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  background-color: #202938; /* Cor de fundo da barra de rolagem */
+  border-radius: 10px; /* Arredondando as bordas da barra */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #07b6d5; /* Cor do "polegar" da barra de rolagem */
+  border-radius: 10px; /* Arredondando o polegar da barra */
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: #21d3ed; /* Cor ao passar o mouse sobre a barra de rolagem */
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background-color: #394152; /* Cor do trilho da barra de rolagem */
+  border-radius: 10px; /* Arredondando o trilho da barra */
+}
+
