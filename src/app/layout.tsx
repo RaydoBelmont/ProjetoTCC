@@ -20,11 +20,11 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <Providers>
-          <div className="flex w-screen">
+          <div className="flex w-full">
             <div className="min-w-[200px]">
               <Navbar />
             </div>
-            <div className="w-screen">
+            <div className="w-full">
               {children}
             </div>
           </div>

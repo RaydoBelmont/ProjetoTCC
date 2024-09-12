@@ -29,40 +29,39 @@ export async function GET(request: NextRequest) {
   }
 
   export async function POST(request: NextRequest) {
-    if (request.method === "POST") {
-      const data = await request.json();
-
+    try {
+      const { data } = await request.json();
+  
       if (!data) {
         return NextResponse.json({ error: "Parâmetro 'data' ausente" }, { status: 400 });
       }
-
-     const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
-
+  
+      const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
+  
       // Descriptografar os dados recebidos
-      const bytes = CryptoJS.AES.decrypt(decodeURIComponent(String(data)), secretKey);
+      const bytes = CryptoJS.AES.decrypt(data, secretKey);
       const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-
-      const idSetor = decryptedData.idSetor
-      const nomeSetor = decryptedData.nome
-      try {
-        const novoQuadro = await savarQuadro(nomeSetor, idSetor);
-        return NextResponse.json(novoQuadro, { status: 200 });
-      } catch (error) {
-        console.log(error);
-        return NextResponse.json(
-          { error: "Erro ao tentar criar um novo Quadro em API" },
-          { status: 500 }
-        );
-      }
-    } else {
-      return NextResponse.json({ error: "Method not allowed." }, { status: 405 });
+  
+      const idSetor = decryptedData.idSetor;
+      const nomeSetor = decryptedData.nome;
+  
+      // Salvar o novo quadro
+      const novoQuadro = await savarQuadro(nomeSetor, idSetor);
+      return NextResponse.json(novoQuadro, { status: 200 });
+  
+    } catch (error) {
+      console.error("Erro no POST de /workspace/setor/quadro:", error);
+      return NextResponse.json(
+        { error: "Erro ao tentar criar um novo Quadro" },
+        { status: 500 }
+      );
     }
   }
   
 
   export async function PATCH(request: NextRequest) {
     if (request.method === "PATCH") {
-    const data = await request.json();
+    const {data} = await request.json();
 
     if (!data) {
       return NextResponse.json({ error: "Parâmetro 'data' ausente" }, { status: 400 });
@@ -71,14 +70,14 @@ export async function GET(request: NextRequest) {
    const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
 
     // Descriptografar os dados recebidos
-    const bytes = CryptoJS.AES.decrypt(decodeURIComponent(String(data)), secretKey);
+    const bytes = CryptoJS.AES.decrypt(data, secretKey);
     const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
     const quadroId = decryptedData.quadroId
     const nomeSetor = decryptedData.nome
   
       try {
-        const quadroEditado = await editQuadro(nomeSetor, nomeSetor);
+        const quadroEditado = await editQuadro(nomeSetor, quadroId);
         return NextResponse.json(quadroEditado, { status: 200 });
       } catch (error) {
         console.log(error);

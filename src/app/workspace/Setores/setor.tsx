@@ -1,8 +1,9 @@
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../../lib/material-tailwindcss/material-tailwindcss";
 import ModalCadSetor from "./modalCadSetor/modalCad";
 import { useState } from "react";
 import { FaEdit } from "react-icons/fa";
+import CryptoJS from "crypto-js";
 
 type PropsSetor = {
   idWorkspace: number;
@@ -19,6 +20,8 @@ export default function Setor(props: PropsSetor) {
   const [isOpen, setIsOpen] = useState(false);
   const [tipoModal, setTipoModal] = useState("");
   const [idSetor, setIdSetor] = useState<number>();
+  const router = useRouter();
+  const pathname = usePathname();
 
   const acaoAbrirModal = (tipo: string, idSetorEditar?: number) => {
     setTipoModal(tipo);
@@ -26,6 +29,18 @@ export default function Setor(props: PropsSetor) {
       setIdSetor(idSetorEditar);
     }
     setIsOpen(true);
+  };
+
+  const redirecionar = async (idSetor: number) => {
+    if (typeof window !== "undefined") {
+      const secretKey = String(process.env.CHAVE_CRIPTO);
+      const encryptedData = CryptoJS.AES.encrypt(
+        JSON.stringify(idSetor),
+        secretKey
+      ).toString();
+
+      router.push(`${pathname}/${encodeURIComponent(encryptedData)}`);
+    }
   };
 
   return (
@@ -56,7 +71,10 @@ export default function Setor(props: PropsSetor) {
 
           {props.Setor.map((setor, index) => (
             <div key={index} className="flex ">
-              <Button className="bg-[#202938] text-xl normal-case text-teal-300 w-full">
+              <Button
+                onClick={() => redirecionar(setor.id)}
+                className="bg-[#202938] text-xl normal-case text-teal-300 w-full"
+              >
                 {setor.nome}
               </Button>
               {props.isAdmin && (

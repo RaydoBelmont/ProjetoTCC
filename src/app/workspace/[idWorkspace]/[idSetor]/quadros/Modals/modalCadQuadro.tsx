@@ -8,8 +8,8 @@ import {
   Input,
   CardFooter,
 } from "../../../../../lib/material-tailwindcss/material-tailwindcss";
-import {inserirQuadro} from "@/app/lib/QuadrosFunctions/libInserirQuadro"
-import {editarQuadro} from "@/app/lib/QuadrosFunctions/libEditarQuadro"
+import { inserirQuadro } from "@/app/lib/QuadrosFunctions/libInserirQuadro";
+import { editarQuadro } from "@/app/lib/QuadrosFunctions/libEditarQuadro";
 
 type propsCadQuadro = {
   isOpen: boolean;
@@ -34,37 +34,39 @@ export default function ModalCadQuadro(props: propsCadQuadro) {
   };
 
   const salvarQuadro = async (event: React.FormEvent) => {
-    event.preventDefault()
+    event.preventDefault();
 
     switch (props.tipoModal) {
-        case "INSERIR":
-          try {
-            const novoQuadro = await inserirQuadro(props.idSetor, nomeCriar);
-            if (novoQuadro) {
-              alert("Novo Quadro inserido com Sucesso!");
-              setNomeCriar("");
-              props.atualizarQuadros(props.idSetor);
-              props.setModalOpen();
-              break;
-            }
-          } catch (error) {
-            console.log("Erro ao tentar inserir novo Quadro.", error);
+      case "INSERIR":
+        try {
+          const novoQuadro = await inserirQuadro(props.idSetor, nomeCriar);
+          if (novoQuadro) {
+            alert("Novo Quadro inserido com Sucesso!");
+            setNomeCriar("");
+            props.atualizarQuadros(props.idSetor);
+            acaoBotaoCancelar();
+            break;
           }
-  
-        case "EDITAR":
-          try {
-            const quadroAtualizado = await editarQuadro(props.quadroId, nomeEditar);
-            if (quadroAtualizado) {
-              alert("Quadro atualizado com Sucesso!");
-              setNomeEditar("");
-              props.atualizarQuadros(props.idSetor);
-              props.setModalOpen();
-              break;
-            }
-          } catch (error) {
-            console.log("Erro ao tentar editar Quadro.", error);
+        } catch (error) {
+          console.log("Erro ao tentar inserir novo Quadro.", error);
+        }
+
+      case "EDITAR":
+        try {
+          const quadroAtualizado = await editarQuadro(
+            props.quadroId,
+            nomeEditar
+          );
+          if (quadroAtualizado) {
+            alert("Quadro atualizado com Sucesso!");
+            props.atualizarQuadros(props.idSetor);
+            acaoBotaoCancelar();
+            break;
           }
-      }
+        } catch (error) {
+          console.log("Erro ao tentar editar Quadro.", error);
+        }
+    }
   };
 
   switch (props.tipoModal) {

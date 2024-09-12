@@ -4,6 +4,7 @@ export const getQuadros = async (idSetor: number) => {
   try {
     const quadros = await prisma.quadro.findMany({
       where: { setorId: idSetor },
+      orderBy: { id: 'asc' },
     });
     return quadros;
   } catch (error) {

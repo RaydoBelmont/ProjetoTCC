@@ -25,7 +25,9 @@ import {
     PopoverHandler,
     PopoverContent,
     MobileNav,
-    Navbar
+    Navbar,
+    Select,
+    Option,
   } from "@material-tailwind/react";
  
 export {
@@ -41,7 +43,7 @@ export {
   Typography,
   Input,
   Checkbox,
-  Textarea ,
+  Textarea,
   IconButton,
   Alert,
   Menu,
@@ -53,5 +55,7 @@ export {
   PopoverHandler,
   PopoverContent,
   MobileNav,
-  Navbar
+  Navbar,
+  Select,
+  Option,
 };

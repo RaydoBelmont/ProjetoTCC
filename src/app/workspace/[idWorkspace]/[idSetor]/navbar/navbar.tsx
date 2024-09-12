@@ -13,6 +13,7 @@ interface Props {
   isOpen: boolean;
   setModalOpen: () => void;
   setTipoModal: () => void
+  tipoModal?: string
 }
 
 export default function NavbarSetor(props: Props) {

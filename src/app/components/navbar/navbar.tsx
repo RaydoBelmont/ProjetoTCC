@@ -6,7 +6,6 @@ import { useEffect, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import BotaoWorkspaces from "./botaoWorkspace";
 import { useRouter } from "next/navigation";
-import { buscaIdUserPorEmail } from "../../lib/UserFunctions/buscaIDuser";
 import CryptoJS from "crypto-js";
 import PerfilUser from "./perfilUser";
 import Image from "next/image";
@@ -24,11 +23,8 @@ const Navbar: React.FC = () => {
   const [workspaces, setWorkspaces] = useState<workspace[]>([]);
   const router = useRouter();
 
-  const redirecionar = async (idWorkspace: number, nome: string) => {
+  const redirecionar = async (idWorkspace: number) => {
     if (typeof window !== "undefined") {
-      const idUser = String(
-        await buscaIdUserPorEmail(String(session?.user?.email))
-      );
       const secretKey = String(process.env.CHAVE_CRIPTO);
       const encryptedData = CryptoJS.AES.encrypt(
         JSON.stringify(idWorkspace),

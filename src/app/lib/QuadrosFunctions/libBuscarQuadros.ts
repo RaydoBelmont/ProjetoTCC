@@ -1,10 +1,10 @@
 import CryptoJS from "crypto-js";
 
-export const buscarQuadros = async (workspaceId: number) => {
+export const buscarQuadros = async (setorId: number) => {
 
     const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
     const encryptedData = CryptoJS.AES.encrypt(
-      JSON.stringify(workspaceId),
+      JSON.stringify(setorId),
       secretKey
     ).toString();
   

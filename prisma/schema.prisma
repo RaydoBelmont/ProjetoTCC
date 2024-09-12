@@ -71,19 +71,32 @@ model Contatos {
 }
 
 model Chamado {
-  id           Int           @id @default(autoincrement())
-  titulo       String
-  descricao    String
-  criadoEm     DateTime @default(now())
-  atualizadoEm DateTime @updatedAt
-  statusId     Int
-  criadoPor    Int
-  clienteId    Int
-  quadroId     Int
-  cliente      Clientes      @relation(fields: [clienteId], references: [id])
-  quadro       Quadro        @relation(fields: [quadroId], references: [id])
-  users        ChamadoUser[]
-  status       Status        @relation(fields: [statusId], references: [id])
+  id              Int            @id @default(autoincrement())
+  titulo          String
+  descricao       String
+  criadoEm        DateTime        @default(now())
+  atualizadoEm    DateTime        @updatedAt
+  statusId        Int
+  criadoPor       Int
+  clienteId       Int
+  quadroId        Int
+  workspaceId     Int             // ID da workspace relacionada
+  numeroSequencial Int            // Sequencial do chamado dentro da workspace
+  cliente         Clientes        @relation(fields: [clienteId], references: [id])
+  quadro          Quadro          @relation(fields: [quadroId], references: [id])
+  users           ChamadoUser[]
+  status          Status          @relation(fields: [statusId], references: [id])
+
+  @@unique([workspaceId, numeroSequencial]) // Garantir que o número sequencial seja único por workspace
+}
+
+model ChamadoUser {
+  userId       Int
+  chamadoId    Int
+  user         User              @relation(fields: [userId], references: [id])
+  chamado      Chamado           @relation(fields: [chamadoId], references: [id])
+
+  @@id([userId, chamadoId])
 }
 
 model Status {
@@ -109,14 +122,6 @@ model Quadro {
   chamados    Chamado[]
 }
 
-model ChamadoUser {
-  userId    Int
-  chamadoId Int
-  user      User    @relation(fields: [userId], references: [id])
-  chamado   Chamado @relation(fields: [chamadoId], references: [id])
-
-  @@id([userId, chamadoId])
-}
 
 model Notificacao {
   id            Int       @id @default(autoincrement())
