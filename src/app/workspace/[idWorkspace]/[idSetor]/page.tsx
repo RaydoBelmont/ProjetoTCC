@@ -25,32 +25,32 @@ type Quadro = {
 const Setor: React.FC = () => {
   const { idWorkspace, idSetor } = useParams();
   const [isOpen, setIsOpen] = useState<boolean>(false);
-  const [isOpenCadChamado, setIsOpenCadChamado] = useState<boolean>(false)
+  const [isOpenCadChamado, setIsOpenCadChamado] = useState<boolean>(false);
   const [tipoModal, setTipoModal] = useState<string>("");
   const [tipoModalCadChamado, setTipoModalCadChamado] = useState<string>("");
   const [quadros, setQuadros] = useState<Quadro[]>([]);
   const [decryptedIdSetor, setDecryptedIdSetor] = useState<number>();
-  const [idQUadroEditar, setIdQuadroEditar] = useState<number>()
+  const [idQUadroEditar, setIdQuadroEditar] = useState<number>();
 
   const atualizaQuadros = async () => {
     const listaQuadros = await buscarQuadros(decryptedIdSetor);
-          if (listaQuadros) {
-            setQuadros(listaQuadros);
-          }else{
-            console.log("Erro ao atualizar Quadros")
-          }
-  }
+    if (listaQuadros) {
+      setQuadros(listaQuadros);
+    } else {
+      console.log("Erro ao atualizar Quadros");
+    }
+  };
 
   const acaoBotaoEditar = (idQuadro: number) => {
-    setTipoModal("EDITAR")
-    setIdQuadroEditar(idQuadro)
-    setIsOpen(true)
-  }
+    setTipoModal("EDITAR");
+    setIdQuadroEditar(idQuadro);
+    setIsOpen(true);
+  };
 
   const acaoBotaoNovoChamado = () => {
-    setIsOpenCadChamado(true)
-    setTipoModalCadChamado("INSERIR")
-  }
+    setIsOpenCadChamado(true);
+    setTipoModalCadChamado("INSERIR");
+  };
 
   useEffect(() => {
     const getQuadros = async () => {
@@ -69,6 +69,7 @@ const Setor: React.FC = () => {
           const listaQuadros = await buscarQuadros(decryptedSetorId);
           if (listaQuadros) {
             setQuadros(listaQuadros);
+            console.log(decryptedSetorId);
           }
         }
       } catch (error) {
@@ -78,6 +79,7 @@ const Setor: React.FC = () => {
 
     getQuadros();
   }, [idSetor]);
+
   return (
     <main>
       <div className="w-full flex flex-col items-center ">
@@ -109,7 +111,7 @@ const Setor: React.FC = () => {
                       variant="text"
                       onClick={() => acaoBotaoEditar(quadro.id)}
                       className="mr-2 p-1 rounded-lg"
-                    > 
+                    >
                       <FaEdit className="h-5 w-5 text-black" />
                     </Button>
                   </CardHeader>
@@ -153,6 +155,12 @@ const Setor: React.FC = () => {
           </div>
         </div>
       </div>
+      <ModalCadChamado
+        tipoModal={tipoModalCadChamado}
+        isOpen={isOpenCadChamado}
+        setModalOpen={() => setIsOpenCadChamado(!isOpenCadChamado)}
+        idSetor={decryptedIdSetor}
+      />
 
       <ModalCadQuadro
         isOpen={isOpen}
@@ -162,8 +170,6 @@ const Setor: React.FC = () => {
         atualizarQuadros={atualizaQuadros}
         quadroId={idQUadroEditar}
       />
-
-      <ModalCadChamado tipoModal={tipoModalCadChamado} isOpen={isOpenCadChamado} setModalOpen={() => setIsOpenCadChamado(!isOpenCadChamado)}  />
     </main>
   );
 };

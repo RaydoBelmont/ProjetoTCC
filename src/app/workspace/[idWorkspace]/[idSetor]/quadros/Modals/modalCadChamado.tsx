@@ -1,5 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
-import Select from "react-select";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Dialog,
@@ -9,192 +8,165 @@ import {
   Input,
   CardFooter,
 } from "../../../../../lib/material-tailwindcss/material-tailwindcss";
-// import { inserirChamado, editarChamado } from "@/app/lib/ChamadosFunctions";
 import { buscarClientes } from "@/app/lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
-// import { buscarStatus } from "@/app/lib/StatusFunctions";
+import InputTextArea from "@/app/components/inputs/inputText";
+import SelectClientes from "@/app/components/selects/SelectClientes";
+import SelectStatus from "@/app/components/selects/selectStatusChamado";
+import { listaStatus } from "@/app/lib/StatusFunctions/libListaStatus";
+import CryptoJS from "crypto-js";
+import { useParams } from "next/navigation";
 
 type propsChamado = {
   isOpen: boolean;
   setModalOpen: () => void;
+  idSetor: number;
   idQuadro?: number;
   atualizarChamados?: (idQuadro: number) => void;
   tipoModal: string;
   chamadoId?: number;
 };
 
+type Status = {
+  id: number;
+  nome: string;
+};
 type Cliente = {
   id: number;
   nome: string;
 };
 
-type Status = {
-  id: number;
-  nome: string;
-};
-
 export default function ModalCadChamado(props: propsChamado) {
+  const {idSetor } = useParams();
   const [titulo, setTitulo] = useState<string>("");
   const [descricao, setDescricao] = useState<string>("");
+  const [idStatus, setIdStatus] = useState<number>();
   const [cliente, setCliente] = useState<Cliente | null>(null);
-  const [statusId, setStatusId] = useState<number | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [statusList, setStatusList] = useState<Status[]>([]);
+  const [listaDeStatus, setListaDeStatus] = useState<Status[]>([]);
 
-  const proximoCampoRef = useRef<HTMLInputElement>(null); // Ref para o próximo campo
-
-  // Fetching Clientes and Status from API
+  // Fetching Clientes from API
   useEffect(() => {
     const fetchData = async () => {
-      const fetchedClientes = await buscarClientes(6);
-      // const fetchedStatus = await buscarStatus();
-      setClientes(fetchedClientes);
-      // setStatusList(fetchedStatus);
+      if (!props.idSetor) {
+        const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
+        const bytes = CryptoJS.AES.decrypt(
+          decodeURIComponent(String(idSetor)),
+          secretKey
+        );
+        const decryptedSetorId = Number(
+          JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+        );
+        const result = await listaStatus(decryptedSetorId);
+        setListaDeStatus(result);
+      } else {
+        const result = await listaStatus(props.idSetor);
+        setListaDeStatus(result);
+      }
     };
     fetchData();
   }, []);
 
-  const handleClienteChange = (selectedOption: any) => {
-    setCliente(
-      selectedOption
-        ? { id: selectedOption.value, nome: selectedOption.label }
-        : null
-    );
+  const handleClienteChange = (selectedOption: Cliente | null) => {
+    setCliente(selectedOption);
   };
 
   const acaoBotaoCancelar = () => {
     setTitulo("");
     setDescricao("");
     setCliente(null);
-    setStatusId(null);
     props.setModalOpen();
   };
-
-  //   const salvarChamado = async (event: React.FormEvent) => {
-  //     event.preventDefault();
-
-  //     const chamadoData = {
-  //       titulo,
-  //       descricao,
-  //       clienteId: cliente ? cliente.id : null,
-  //       statusId,
-  //       quadroId: props.idQuadro,
-  //     };
-
-  //     if (props.tipoModal === "INSERIR") {
-  //       try {
-  //         const novoChamado = await inserirChamado(chamadoData);
-  //         if (novoChamado) {
-  //           alert("Novo Chamado inserido com Sucesso!");
-  //           props.atualizarChamados?.(props.idQuadro!);
-  //           acaoBotaoCancelar();
-  //         }
-  //       } catch (error) {
-  //         console.error("Erro ao inserir Chamado.", error);
-  //       }
-  //     } else if (props.tipoModal === "EDITAR") {
-  //       try {
-  //         const chamadoAtualizado = await editarChamado(props.chamadoId!, chamadoData);
-  //         if (chamadoAtualizado) {
-  //           alert("Chamado atualizado com Sucesso!");
-  //           props.atualizarChamados?.(props.idQuadro!);
-  //           acaoBotaoCancelar();
-  //         }
-  //       } catch (error) {
-  //         console.error("Erro ao editar Chamado.", error);
-  //       }
-  //     }
-  //   };
 
   const clienteOptions = clientes.map((cliente) => ({
     value: cliente.id,
     label: cliente.nome,
   }));
 
+  const AtualizaListaStatus = async () => {
+    const result = await listaStatus(props.idSetor);
+    setListaDeStatus(result);
+  };
+
+  const acaoSalvarChamado = (event: React.FormEvent) => {
+    event.preventDefault()
+    console.log(idStatus)
+  }
   return (
     <Dialog
-      size="lg"
+      size="xl"
       open={props.isOpen}
       handler={props.setModalOpen}
       className="bg-transparent shadow-none"
     >
-      <div className="flex">
-        <Card className="mx-auto w-full max bg-[#384152]">
-          <form>
-            <CardBody className="flex flex-col gap-4">
-              <Typography variant="h4" color="white">
-                {props.tipoModal === "INSERIR"
-                  ? "Cadastro de Chamado"
-                  : "Editar Chamado"}
-              </Typography>
-              <Select
-                options={clienteOptions}
-                value={
-                  cliente ? { value: cliente.id, label: cliente.nome } : null
-                }
-                onChange={handleClienteChange}
-                placeholder="Selecionar cliente..."
-                isClearable
-                isSearchable
-                styles={{
-                  control: (provided, state) => ({
-                    ...provided,
-                    backgroundColor: "#394152", // Cor de fundo fora de foco (cinza claro)
-                    color: "white", // Cor do texto
-                    borderColor: "#E5E7EB", // Azul quando focado, cinza claro fora de foco
-                    borderWidth: state.isFocused ? "1px" : "1px", // Borda mais grossa quando focado
-                    boxShadow: "none", // Sombra quando focado
-                    "&:hover": {
-                      borderColor: "white", // Cor da borda ao passar o mouse
-                    },
-                  }),
-                  singleValue: (provided) => ({
-                    ...provided,
-                    color: "white", // Cor do texto da opção selecionada (cinza escuro)
-                  }),
-                  menu: (provided) => ({
-                    ...provided,
-                    backgroundColor: "#374151", // Cor de fundo do menu de opções
-                    color: "#374151", // Cor do texto das opções
-                  }),
-                  option: (provided, state) => ({
-                    ...provided,
-                    backgroundColor: state.isFocused ? "#3B82F6" : "#374151", // Cor de fundo ao focar na opção
-                    color: "white", // Cor do texto ao focar na opção
-                  }),
-                }}
-              />
-              <Input
-                label="Título"
-                value={titulo}
-                onChange={(e) => setTitulo(e.target.value)}
-                required
-                color="white"
-                crossOrigin={""}
-              />
-              <Input
-                label="Descrição"
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                required
-                color="white"
-                crossOrigin={""}
-              />
-            </CardBody>
-            <CardFooter className="pt-0 flex justify-end space-x-2">
-              <Button
-                variant="gradient"
-                color="red"
-                onClick={acaoBotaoCancelar}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit" color="green">
-                Salvar
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      </div>
+      <Card className="flex flex-row mx-auto w-full max bg-[#384152]">
+        <form onSubmit={acaoSalvarChamado} className="flex-grow">
+          <CardBody className="flex flex-col gap-4">
+            <Typography variant="h4" color="white">
+              {props.tipoModal === "INSERIR"
+                ? "Cadastro de Chamado"
+                : "Editar Chamado"}
+            </Typography>
+
+            {/* Substituindo react-select pelo CustomSelect */}
+            <SelectClientes
+              options={clientes}
+              value={cliente}
+              onChange={handleClienteChange}
+              placeholder="Selecionar cliente..."
+            />
+
+            <Input
+              label="Título"
+              value={titulo}
+              onChange={(e) => setTitulo(e.target.value)}
+              required
+              color="white"
+              crossOrigin={undefined}
+            />
+            <InputTextArea
+              nome={"Descrição"}
+              valor={descricao}
+              acao={"INSERIR"}
+              setarValor={setDescricao}
+              linhas={10}
+            />
+          </CardBody>
+          <CardFooter className="pt-0 flex justify-end space-x-2">
+            <Button variant="gradient" color="red" onClick={acaoBotaoCancelar}>
+              Cancelar
+            </Button>
+            <Button type="submit" color="green">
+              Salvar
+            </Button>
+          </CardFooter>
+        </form>
+
+        {/* Menu lateral ao lado direito */}
+        <div className="bg-[#394152] p-4 rounded-r w-1/4">
+          <Typography variant="h4" color="white" className="mb-6 text-center">
+            Detalhes
+          </Typography>
+          <div className="flex flex-col gap-4">
+            {/* Select de Status */}
+            <SelectStatus
+              statusList={listaDeStatus}
+              atualizaLista={AtualizaListaStatus}
+              setorId={props.idSetor}
+              setarIdStatus={setIdStatus}
+            />
+
+            {/* Select de Prioridade */}
+            <select className="p-2 rounded bg-[#374151] text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+              <option value="">Prioridade...</option>
+              <option value="1">Baixa</option>
+              <option value="2">Média</option>
+              <option value="3">Alta</option>
+            </select>
+
+            
+          </div>
+        </div>
+      </Card>
     </Dialog>
   );
 }

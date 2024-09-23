@@ -17,9 +17,6 @@ export default function Navbar(props: Props) {
       <ul className="flex space-x-4">
         <li>
           <BotaoSetor
-            idWorkspace={props.idWorkspace}
-            userId={props.userId}
-            isAdmin={props.isAdmin}
             setaPagina={props.setaPagina}
           />
           <BotaoMembros setaPagina={props.setaPagina} />

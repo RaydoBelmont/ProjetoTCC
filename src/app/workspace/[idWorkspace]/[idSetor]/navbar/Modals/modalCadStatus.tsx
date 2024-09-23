@@ -14,7 +14,7 @@ import { editarQuadro } from "@/app/lib/QuadrosFunctions/libEditarQuadro";
 type propsCadQuadro = {
   isOpen: boolean;
   setModalOpen: () => void;
-  idSetor: number;
+  idSetor?: number;
   atualizarQuadros?: (idSetor: number) => void;
   tipoModal: string;
   quadroId?: number;
