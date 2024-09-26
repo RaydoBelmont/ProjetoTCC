@@ -5,7 +5,7 @@ type InputTextAreaProps = {
   valor: string | number;
   acao: string;
   setarValor: (valor: any) => void;
-  linhas: number
+  linhas: number;
 };
 
 const InputTextArea: React.FC<InputTextAreaProps> = ({
@@ -13,10 +13,10 @@ const InputTextArea: React.FC<InputTextAreaProps> = ({
   valor,
   acao,
   setarValor,
-  linhas
+  linhas,
 }) => {
   return (
-    <div className="relative w-full">
+    <div className="relative w-full resize-none">
       <textarea
         className="peer custom-scrollbar h-30 w-full rounded-[7px] border bg-transparent px-3 py-2.5 font-sans text-sm font-normal text-white outline-none transition-all placeholder-shown:border placeholder-shown:border-white focus:border-2 focus:outline-none resize-none"
         placeholder=" "
@@ -26,7 +26,7 @@ const InputTextArea: React.FC<InputTextAreaProps> = ({
         rows={linhas}
       />
       <label
-        className={`absolute transition-all left-3 mt-2 origin-[0] px-1 text-white leading-tight text-[14px] 
+        className={`absolute transition-all left-3 mt-2 origin-[0] px-1 text-white leading-tight text-[14px] resize-none 
         ${
           valor
             ? "-top-4 left-3 scale-[0.85] bg-[#384152] text-white text-[14px]"

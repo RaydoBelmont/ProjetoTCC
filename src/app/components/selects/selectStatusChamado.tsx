@@ -116,14 +116,14 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
       {isOpen && (
         <div
           ref={popoverRef}
-          className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 shadow-lg"
+          className="absolute z-10 w-full bg-gray-200 border border-gray-300 rounded mt-1 shadow-lg"
         >
           <ul className="max-h-60 overflow-auto">
             {statusList.length > 0 ? (
               statusList.map((status) => (
                 <li
                   key={status.id}
-                  className="flex justify-between items-center p-2 hover:bg-gray-100"
+                  className="flex justify-between items-center p-2 hover:bg-gray-300"
                 >
                   {editando && editando.id === status.id ? (
                     <form
@@ -204,7 +204,7 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
           ) : (
             <button
               onClick={acaoNovoStatus}
-              className="flex items-center justify-center w-full p-2 text-green-500 hover:text-green-700 border-t border-gray-300"
+              className="flex items-center justify-center w-full p-2 text-green-500 hover:text-green-700 border-t border-gray-400"
             >
               <FaPlus className="mr-2" />
               Adicionar status

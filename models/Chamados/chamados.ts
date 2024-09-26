@@ -5,6 +5,7 @@ export async function criarChamado(
   titulo: string,
   descricao: string,
   statusId: number,
+  prioridadeId: number,
   membroId: number,
   quadroId: number,
   workspaceId: number
@@ -14,25 +15,54 @@ export async function criarChamado(
       data: {
         titulo: titulo,
         descricao: descricao,
-        statusId: statusId, // ID de status pré-existente
-        criadoPor: membroId, // ID do usuário que está criando o chamado
-        clienteId: clienteId, // ID do cliente associado ao chamado
-        quadroId: quadroId, // ID do quadro onde o chamado pertence
-        workspaceId: workspaceId, // ID da workspace do chamado
-        numeroSequencial: await gerarNumeroSequencial(workspaceId), // Função para gerar número sequencial para workspaceId 1
+        statusId: statusId,
+        prioridadeId: prioridadeId,
+        criadoPor: membroId,
+        clienteId: clienteId,
+        quadroId: quadroId,
+        workspaceId: workspaceId,
+        numeroSequencial: await gerarNumeroSequencial(workspaceId),
         users: {
           create: {
             user: {
-              connect: { id: membroId }, // ID do usuário que está relacionado ao chamado
+              connect: { id: membroId },
+            },
+          },
+        },
+      },
+      include: {
+        cliente: {
+          select: {
+            nome: true, // Inclui o nome do cliente
+          },
+        },
+        status: {
+          select: {
+            nome: true, // Inclui o nome do status
+          },
+        },
+        prioridade: {
+          select: {
+            nome: true, // Inclui o nome da prioridade
+          },
+        },
+        users: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                nome: true, // Inclui os IDs e nomes dos usuários relacionados
+              },
             },
           },
         },
       },
     });
 
-    console.log("Chamado criado com sucesso:", novoChamado);
+    return novoChamado;
   } catch (error) {
     console.error("Erro ao criar chamado:", error);
+    throw new Error("Erro ao criar chamado");
   } finally {
     await prisma.$disconnect();
   }
@@ -49,19 +79,53 @@ async function gerarNumeroSequencial(workspaceId: number): Promise<number> {
 
 
 export const buscarChamadosPorQuadro = async (quadroId: number) => {
-    try {
-      const chamados = await prisma.chamado.findMany({
-        where: {
-          quadroId: quadroId, // Filtra pelo ID do usuário
+  try {
+    const chamados = await prisma.chamado.findMany({
+      where: {
+        quadroId: quadroId,
+      },
+      orderBy: {
+        criadoEm: 'desc',
+      },
+      include: {
+        cliente: {
+          select: {
+            nome: true, // Nome do cliente associado
+          },
         },
-        orderBy: {
-          criadoEm: 'desc', // Ordena as notificações pela data de criação, do mais recente para o mais antigo
+        status: {
+          select: {
+            nome: true, // Nome do status
+          },
         },
-      });
-  
-      return chamados;
-    } catch (error) {
-      console.error('Erro ao obter notificações do usuário:', error);
-      return [];
-    }
-  };
+        prioridade: {
+          select: {
+            nome: true, // Nome da prioridade
+          },
+        },
+        users: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                nome: true, // IDs e nomes dos usuários associados
+              },
+            },
+          },
+        },
+        quadro: {
+          select: {
+            nome: true, // Nome do quadro associado
+          },
+        },
+      },
+    });
+
+    return chamados;
+  } catch (error) {
+    console.error('Erro ao buscar chamados:', error);
+    throw new Error("Erro ao buscar chamados");
+  } finally {
+    await prisma.$disconnect();
+  }
+};

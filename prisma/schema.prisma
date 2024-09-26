@@ -14,6 +14,7 @@ model User {
   workspaces WorkspaceUser[]
   chamados   ChamadoUser[]  
   notificacoes Notificacao[]
+  historico        ChamadoHistorico[]
 }
 
 model Workspace {
@@ -71,23 +72,24 @@ model Contatos {
 }
 
 model Chamado {
-  id              Int            @id @default(autoincrement())
-  titulo          String
-  descricao       String
-  criadoEm        DateTime        @default(now())
-  atualizadoEm    DateTime        @updatedAt
-  statusId        Int
-  prioridadeId    Int
-  criadoPor       Int
-  clienteId       Int
-  quadroId        Int
-  workspaceId     Int             // ID da workspace relacionada
-  numeroSequencial Int            // Sequencial do chamado dentro da workspace
-  cliente         Clientes        @relation(fields: [clienteId], references: [id])
-  quadro          Quadro          @relation(fields: [quadroId], references: [id])
-  users           ChamadoUser[]
-  status          Status          @relation(fields: [statusId], references: [id])
-  prioridade      Prioridade          @relation(fields: [prioridadeId], references: [id])
+  id               Int            @id @default(autoincrement())
+  titulo           String
+  descricao        String
+  criadoEm         DateTime        @default(now())
+  atualizadoEm     DateTime        @updatedAt
+  statusId         Int
+  prioridadeId     Int
+  criadoPor        Int
+  clienteId        Int
+  quadroId         Int
+  workspaceId      Int             // ID da workspace relacionada
+  numeroSequencial Int             // Sequencial do chamado dentro da workspace
+  cliente          Clientes        @relation(fields: [clienteId], references: [id])
+  quadro           Quadro          @relation(fields: [quadroId], references: [id])
+  users            ChamadoUser[]
+  status           Status          @relation(fields: [statusId], references: [id])
+  prioridade       Prioridade      @relation(fields: [prioridadeId], references: [id])
+  historico        ChamadoHistorico[] // Relacionamento com o histórico/comentários
 
   @@unique([workspaceId, numeroSequencial]) // Garantir que o número sequencial seja único por workspace
 }
@@ -100,6 +102,25 @@ model ChamadoUser {
 
   @@id([userId, chamadoId])
 }
+
+model ChamadoHistorico {
+  id              Int       @id @default(autoincrement())
+  chamadoId       Int       // Relaciona ao chamado
+  alteradoPorId   Int?      // Relaciona ao usuário que fez a alteração/comentário
+  tipo            String    // Tipo de histórico: "STATUS", "PRIORIDADE", "COMENTARIO", etc.
+  descricao       String?   // Descrição do comentário (para quando tipo for "COMENTARIO")
+  valorAnterior   String?   // Valor anterior (ID do status, prioridade, ou outro campo alterado)
+  valorNovo       String?   // Novo valor (ID do status, prioridade, ou outro campo alterado)
+  criadoEm        DateTime  @default(now()) // Data da alteração ou do comentário
+
+  // Relacionamentos
+  chamado         Chamado   @relation(fields: [chamadoId], references: [id])
+  user            User?     @relation(fields: [alteradoPorId], references: [id])
+
+  @@index([chamadoId])
+  @@index([alteradoPorId])
+}
+
 
 model Setor {
   id          Int       @id @default(autoincrement())

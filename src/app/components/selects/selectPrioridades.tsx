@@ -1,8 +1,8 @@
 import React, { useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { FaPlus, FaEdit, FaSave, FaTimes } from "react-icons/fa";
-import { inserirStatus } from "@/app/lib/StatusFunctions/libInserirStatus";
-import { editarStatus } from "@/app/lib/StatusFunctions/libEditarStatus";
+import { inserirPrioridade } from "@/app/lib/PrioridadesFunctions/libInserirPrioridade";
+import { editarPrioridade } from "@/app/lib/PrioridadesFunctions/libEditarPrioridade";
 
 interface Prioridade {
   id: number;
@@ -60,7 +60,7 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
   const acaoSalvarEdicao = async (event: React.FormEvent, prioridadeId: number) => {
     event.preventDefault();
     if (editando) {
-      const prioridadeEditado = await editarStatus(prioridadeId, nomeEditado)
+      const prioridadeEditado = await editarPrioridade(prioridadeId, nomeEditado)
       if(prioridadeEditado){
         atualizaLista()
         setEditando(null);
@@ -93,7 +93,7 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
   const acaoSalvarNovaPrioridade =  async (event: React.FormEvent) => {
     event.preventDefault();
     if (adicionando) {
-      const novaPrioridade = await inserirStatus(setorId, nomeNovaPrioridade)
+      const novaPrioridade = await inserirPrioridade(setorId, nomeNovaPrioridade)
       if(novaPrioridade){
         atualizaLista()
         setAdicionando(false);
@@ -110,20 +110,20 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white text-start"
       >
-        {prioridadeSelecionada ? prioridadeSelecionada.nome : "Selecione um status"}
+        {prioridadeSelecionada ? prioridadeSelecionada.nome : "Selecione uma Prioridade"}
       </button>
 
       {isOpen && (
         <div
           ref={popoverRef}
-          className="absolute z-10 w-full bg-white border border-gray-300 rounded mt-1 shadow-lg"
+          className="absolute z-10 w-full bg-gray-200 border border-gray-300 rounded mt-1 shadow-lg"
         >
           <ul className="max-h-60 overflow-auto">
             {listaPrioridades.length > 0 ? (
               listaPrioridades.map((status) => (
                 <li
                   key={status.id}
-                  className="flex justify-between items-center p-2 hover:bg-gray-100"
+                  className="flex justify-between items-center p-2 hover:bg-gray-300"
                 >
                   {editando && editando.id === status.id ? (
                     <form
@@ -185,7 +185,7 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
                 type="text"
                 value={nomeNovaPrioridade}
                 onChange={(e) => setNomeNovaPrioridade(e.target.value)}
-                placeholder="Novo status..."
+                placeholder="Nova Prioridade..."
                 className="w-full p-1 border border-gray-300 rounded focus:outline-none"
               />
               <button
@@ -204,7 +204,7 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
           ) : (
             <button
               onClick={acaoNovaPrioridade}
-              className="flex items-center justify-center w-full p-2 text-green-500 hover:text-green-700 border-t border-gray-300"
+              className="flex items-center justify-center w-full p-2 text-green-500 hover:text-green-700 border-t border-gray-400"
             >
               <FaPlus className="mr-2" />
               Adicionar prioridade

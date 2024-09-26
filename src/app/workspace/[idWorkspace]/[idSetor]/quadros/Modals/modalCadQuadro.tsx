@@ -15,7 +15,7 @@ type propsCadQuadro = {
   isOpen: boolean;
   setModalOpen: () => void;
   idSetor: number;
-  atualizarQuadros?: (idSetor: number) => void;
+  atualizarQuadros?: () => void;
   tipoModal: string;
   quadroId?: number;
 };
@@ -43,7 +43,7 @@ export default function ModalCadQuadro(props: propsCadQuadro) {
           if (novoQuadro) {
             alert("Novo Quadro inserido com Sucesso!");
             setNomeCriar("");
-            props.atualizarQuadros(props.idSetor);
+            props.atualizarQuadros();
             acaoBotaoCancelar();
             break;
           }
@@ -59,7 +59,7 @@ export default function ModalCadQuadro(props: propsCadQuadro) {
           );
           if (quadroAtualizado) {
             alert("Quadro atualizado com Sucesso!");
-            props.atualizarQuadros(props.idSetor);
+            props.atualizarQuadros();
             acaoBotaoCancelar();
             break;
           }
