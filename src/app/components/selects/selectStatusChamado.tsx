@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { FaPlus, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { inserirStatus } from "@/app/lib/StatusFunctions/libInserirStatus";
@@ -13,8 +13,8 @@ interface SelectStatusProps {
   statusList: Status[];
   atualizaLista: () => void;
   setorId: number;
-  setarIdStatus: (idStatus: number) => void
-
+  setarIdStatus: (idStatus: number) => void;
+  valorInicial?: Status;
 }
 
 const SelectStatus: React.FC<SelectStatusProps> = ({
@@ -22,10 +22,9 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
   atualizaLista,
   setorId,
   setarIdStatus,
+  valorInicial,
 }) => {
-  const [statusSelecionado, setStatusSelecionado] = useState<Status | null>(
-    null
-  );
+  const [statusSelecionado, setStatusSelecionado] = useState<Status | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [editando, setEditando] = useState<Status | null>(null);
   const [nomeEditado, setNomeEditado] = useState("");
@@ -43,7 +42,7 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
   });
 
   const acaoSelecionarStatus = (status: Status) => {
-    setarIdStatus(status.id)
+    setarIdStatus(status.id);
     setStatusSelecionado(status);
     setIsOpen(false);
   };
@@ -60,9 +59,9 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
   const acaoSalvarEdicao = async (event: React.FormEvent, statusId: number) => {
     event.preventDefault();
     if (editando) {
-      const statusEditado = await editarStatus(statusId, nomeEditado)
-      if(statusEditado){
-        atualizaLista()
+      const statusEditado = await editarStatus(statusId, nomeEditado);
+      if (statusEditado) {
+        atualizaLista();
         setEditando(null);
         setNomeEditado("");
       }
@@ -90,18 +89,23 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
     setNomeNovoStatus("");
   };
 
-  const acaoSalvarNovoStatus =  async (event: React.FormEvent) => {
+  const acaoSalvarNovoStatus = async (event: React.FormEvent) => {
     event.preventDefault();
     if (adicionando) {
-      const novoStatus = await inserirStatus(setorId, nomeNovoStatus)
-      if(novoStatus){
-        atualizaLista()
+      const novoStatus = await inserirStatus(setorId, nomeNovoStatus);
+      if (novoStatus) {
+        atualizaLista();
         setAdicionando(false);
         setNomeNovoStatus("");
       }
     }
   };
 
+  useEffect(() => {
+    if (valorInicial) {
+      setStatusSelecionado(valorInicial);
+    }
+  }, [valorInicial]);
   return (
     <div className="relative w-full">
       <span className="text-white">Status</span>
@@ -127,7 +131,7 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
                 >
                   {editando && editando.id === status.id ? (
                     <form
-                    onSubmit={(event) => acaoSalvarEdicao(event, status.id)} 
+                      onSubmit={(event) => acaoSalvarEdicao(event, status.id)}
                       className="flex items-center space-x-2 w-full"
                     >
                       <input

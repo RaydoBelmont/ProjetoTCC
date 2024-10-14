@@ -90,14 +90,14 @@ const SelectClientes: React.FC<CustomSelectProps> = ({
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Pesquisar..."
-              className="w-full mt-2 focus:outline-none bg-gray-400 text-black placeholder-gray-500"
+              className="w-full mt-2 focus:outline-none bg-gray-400 text-black placeholder-gray-600"
             />
           {/* Lista de opções filtradas */}
           {filteredOptions.map((option) => (
             <div
               key={option.id}
               onClick={() => handleChange(option)}
-              className="cursor-pointer text-black px-4 py-2 hover:bg-gray-300"
+              className="cursor-pointer text-black px-4 py-1 mb-2 hover:bg-gray-300"
             >
               {option.nome} - {option.cpfCnpj}
             </div>

@@ -8,13 +8,15 @@ datasource db {
 }
 
 model User {
-  id         Int             @id @default(autoincrement())
-  nome       String
-  email      String          @unique
-  workspaces WorkspaceUser[]
-  chamados   ChamadoUser[]  
-  notificacoes Notificacao[]
-  historico        ChamadoHistorico[]
+  id                Int              @id @default(autoincrement())
+  nome              String
+  email             String           @unique
+  workspaces        WorkspaceUser[]
+  chamados          ChamadoUser[]  
+  notificacoes      Notificacao[]
+  historico         ChamadoHistorico[]
+  setoresMembro     SetorMembro[]    // Relacionamento com tabela intermediária para membros do setor
+  quadrosResponsavel Quadro[]        // Relacionamento com Quadros onde é responsável
 }
 
 model Workspace {
@@ -22,7 +24,7 @@ model Workspace {
   nome     String
   clientes Clientes[]
   users    WorkspaceUser[]
-  setores   Setor[]
+  setores  Setor[]
 }
 
 model WorkspaceUser {
@@ -49,7 +51,7 @@ model Clientes {
   workspace   Workspace  @relation(fields: [workspaceId], references: [id])
   contatos    Contatos[]
   chamados    Chamado[]
-  endereco Endereco?
+  endereco    Endereco?
 }
 
 model Endereco {
@@ -60,8 +62,8 @@ model Endereco {
   bairro      String
   cidade      String
   uf          String
-  cliente Clientes @relation(fields: [clienteId], references: [id])
-  clienteId Int @unique
+  cliente     Clientes    @relation(fields: [clienteId], references: [id])
+  clienteId   Int @unique
 }
 
 model Contatos {
@@ -77,21 +79,20 @@ model Chamado {
   descricao        String
   criadoEm         DateTime        @default(now())
   atualizadoEm     DateTime        @updatedAt
-  statusId         Int
+  status           StatusEnum      @default(EM_ABERTO) // Usando status fixo
   prioridadeId     Int
   criadoPor        Int
   clienteId        Int
   quadroId         Int
-  workspaceId      Int             // ID da workspace relacionada
-  numeroSequencial Int             // Sequencial do chamado dentro da workspace
+  workspaceId      Int             
+  numeroSequencial Int             
   cliente          Clientes        @relation(fields: [clienteId], references: [id])
   quadro           Quadro          @relation(fields: [quadroId], references: [id])
   users            ChamadoUser[]
-  status           Status          @relation(fields: [statusId], references: [id])
   prioridade       Prioridade      @relation(fields: [prioridadeId], references: [id])
-  historico        ChamadoHistorico[] // Relacionamento com o histórico/comentários
+  historico        ChamadoHistorico[] 
 
-  @@unique([workspaceId, numeroSequencial]) // Garantir que o número sequencial seja único por workspace
+  @@unique([workspaceId, numeroSequencial]) 
 }
 
 model ChamadoUser {
@@ -121,23 +122,23 @@ model ChamadoHistorico {
   @@index([alteradoPorId])
 }
 
-
 model Setor {
   id          Int       @id @default(autoincrement())
   nome        String
   workspaceId Int
   workspace   Workspace @relation(fields: [workspaceId], references: [id])
   quadros     Quadro[]
-  status      Status[]
-  prioridade Prioridade[]
+  prioridade  Prioridade[]
+  membros     SetorMembro[]    // Relacionamento com tabela intermediária para membros do setor
 }
 
-model Status {
-  id          Int       @id @default(autoincrement())
-  nome        String
-  setorId     Int       
-  setor       Setor     @relation(fields: [setorId], references: [id])
-  Chamado     Chamado[]
+model SetorMembro {
+  setorId   Int
+  userId    Int
+  setor     Setor @relation(fields: [setorId], references: [id])
+  user      User  @relation(fields: [userId], references: [id])
+
+  @@id([setorId, userId])
 }
 
 model Prioridade {
@@ -149,13 +150,15 @@ model Prioridade {
 }
 
 model Quadro {
-  id          Int       @id @default(autoincrement())
-  nome        String
-  setorId     Int
-  setor       Setor     @relation(fields: [setorId], references: [id])
-  chamados    Chamado[]
+  id            Int       @id @default(autoincrement())
+  nome          String
+  setorId       Int
+  setor         Setor     @relation(fields: [setorId], references: [id])
+  ativo         Boolean @default(true)
+  chamados      Chamado[]
+  responsavelId Int        
+  responsavel   User       @relation(fields: [responsavelId], references: [id]) 
 }
-
 
 model Notificacao {
   id            Int       @id @default(autoincrement())
@@ -171,4 +174,12 @@ model Notificacao {
   user          User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
+}
+
+enum StatusEnum {
+  EM_ABERTO
+  EM_ANALISE
+  EM_ESPERA
+  CONCLUIDO
+  CANCELADO
 }

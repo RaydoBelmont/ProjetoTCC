@@ -1,14 +1,13 @@
-export const inserirSetor = async (workspaceId: number, nome: string, idUser: number) => {
+export const inserirMembro = async (setorId: number, idUser: number) => {
   try {
     const response = await fetch("/api/workspace/setor", {
-      method: "POST",
+      method: "PATCH",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        workspaceId: workspaceId,
-        nome: nome,
-        idUser: idUser
+        setorId: setorId,
+        idUser: idUser,
       }),
     });
 
@@ -16,11 +15,11 @@ export const inserirSetor = async (workspaceId: number, nome: string, idUser: nu
     if (response.ok) {
       return data;
     } else {
-      console.error("Erro ao inserir Setor:", data.error);
+      console.error("Erro ao inserir membro no Setor:", data.error);
       return null;
     }
   } catch (error) {
-    console.error('Erro ao inserir Setor:', error);
-      return null;
+    console.error("Erro ao inserir membro no Setor:", error);
+    return null;
   }
 };

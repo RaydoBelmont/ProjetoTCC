@@ -12,7 +12,7 @@ import {
 } from "../../../lib/material-tailwindcss/material-tailwindcss";
 import { libSetarAdmin } from "@/app/lib/WorkspaceFunctions/Membros/setaAdmin";
 import { buscaIdUserPorEmail } from "@/app/lib/UserFunctions/buscaIDuser";
-import { getMembroParaWorkspace } from "@/app/lib/WorkspaceFunctions/Membros/getMembroParaConvite";
+import { getMembroParaWorkspace } from "@/app/lib/WorkspaceFunctions/Membros/buscaMembroDaWorkspace";
 import { inserirNotificacao } from "@/app/lib/NotificacoesFunctions/libInserirNotificacao";
 
 export interface Membro {
@@ -140,7 +140,10 @@ export default function TableMembros(props: MembrosWorkspaceProps) {
                 {alertVisible && (
                   <Alert
                     color={
-                      alertMessage === "Enviando convite..." ? "blue" : "red"
+                      alertMessage === "Enviando convite..." ||
+                      "Convite enviado com sucesso!"
+                        ? "blue"
+                        : "red"
                     }
                     onClose={() => setAlertVisible(false)}
                     className="transition duration-700 ease-in-out transform mt-2"

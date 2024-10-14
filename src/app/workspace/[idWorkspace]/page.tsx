@@ -105,7 +105,8 @@ const Workspace: React.FC = () => {
 
   const buscaESetaSetores = async (idWorkspace: number) => {
     try {
-      const dataSetores = await listaSetores(idWorkspace);
+      const idUser = await buscaIdUserPorEmail(session.user.email)
+      const dataSetores = await listaSetores(idWorkspace, idUser);
       if (dataSetores) setSetores(dataSetores);
     } catch (error) {
       console.error("Erro ao buscar Setores:", error);

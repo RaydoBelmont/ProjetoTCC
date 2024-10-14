@@ -33,6 +33,7 @@ export async function criarChamado(
       include: {
         cliente: {
           select: {
+            id: true,
             nome: true, // Inclui o nome do cliente
           },
         },
@@ -77,7 +78,6 @@ async function gerarNumeroSequencial(workspaceId: number): Promise<number> {
   return ultimoChamado ? ultimoChamado.numeroSequencial + 1 : 1;
 }
 
-
 export const buscarChamadosPorQuadro = async (quadroId: number) => {
   try {
     const chamados = await prisma.chamado.findMany({
@@ -85,7 +85,7 @@ export const buscarChamadosPorQuadro = async (quadroId: number) => {
         quadroId: quadroId,
       },
       orderBy: {
-        criadoEm: 'desc',
+        criadoEm: "desc",
       },
       include: {
         cliente: {
@@ -123,9 +123,187 @@ export const buscarChamadosPorQuadro = async (quadroId: number) => {
 
     return chamados;
   } catch (error) {
-    console.error('Erro ao buscar chamados:', error);
+    console.error("Erro ao buscar chamados:", error);
     throw new Error("Erro ao buscar chamados");
   } finally {
     await prisma.$disconnect();
   }
 };
+
+export const buscaChamado = async (chamadoId: number) => {
+  try {
+    const chamado = await prisma.chamado.findUnique({
+      where: {id: chamadoId},
+      include: {
+        cliente: {
+          select: {
+            nome: true, // Nome do cliente associado
+          },
+        },
+        status: {
+          select: {
+            nome: true, // Nome do status
+          },
+        },
+        prioridade: {
+          select: {
+            nome: true, // Nome da prioridade
+          },
+        },
+        users: {
+          select: {
+            user: {
+              select: {
+                id: true,
+                nome: true, // IDs e nomes dos usuários associados
+              },
+            },
+          },
+        },
+        quadro: {
+          select: {
+            nome: true, // Nome do quadro associado
+          },
+        },
+      },
+    })
+    return chamado;
+  } catch (error) {
+    console.error("Erro ao buscar um chamado em model:", error)
+  }finally{
+    await prisma.$disconnect();
+  }
+}
+
+export const alterarChamado = async (
+  idChamado: number,
+  idNovoStatus?: number,
+  idNovaPrioridade?: number,
+  novaDescricao?: string,
+  idNovoCliente?: number,
+) => {
+  if(idNovoStatus){
+    try {
+      const chamado = await prisma.chamado.update({
+        where: { id: idChamado },
+        data: {
+          statusId: idNovoStatus,
+        },
+      });
+      return chamado;
+    } catch (err) {
+      console.error("Erro ao alterar status do chamado:", err);
+      throw new Error("Erro ao alterar status do chamado");
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+
+  if(idNovaPrioridade){
+    try {
+      const chamado = await prisma.chamado.update({
+        where: { id: idChamado },
+        data: {
+          prioridadeId: idNovaPrioridade,
+        },
+      });
+      return chamado;
+    } catch (err) {
+      console.error("Erro ao alterar prioridade do chamado:", err);
+      throw new Error("Erro ao alterar prioridade do chamado");
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+
+  if(novaDescricao){
+    try {
+      const chamado = await prisma.chamado.update({
+        where: { id: idChamado },
+        data: {
+          descricao: novaDescricao,
+        },
+      });
+      return chamado;
+    } catch (err) {
+      console.error("Erro ao alterar descricao do chamado:", err);
+      throw new Error("Erro ao alterar descricao do chamado");
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+  
+  if(idNovoCliente){
+    try {
+      const chamado = await prisma.chamado.update({
+        where: { id: idChamado },
+        data: {
+          clienteId: idNovoCliente,
+        },
+      });
+      return chamado;
+    } catch (err) {
+      console.error("Erro ao alterar cliente do chamado:", err);
+      throw new Error("Erro ao alterar cliente do chamado");
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+};
+
+export async function inserirMembro(idChamado: number, idNovoMembro: number) {
+  try {
+    const chamado = await prisma.chamadoUser.create({
+      data: {
+        chamadoId: idChamado,
+        userId: idNovoMembro
+      },
+    });
+    return chamado;
+  } catch (err) {
+    console.error("Erro ao inserir membro no chamado em model:", err);
+    throw new Error("Erro ao inserir membro no chamado em model");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function removerMembro(idChamado: number, idMembroRemover: number) {
+  try {
+    const membroRemovido = await prisma.chamadoUser.delete({
+      where: {
+        userId_chamadoId: {
+          chamadoId: idChamado,
+          userId: idMembroRemover
+        }
+      },
+    });
+    return membroRemovido;
+  } catch (err) {
+    console.error("Erro ao inserir membro no chamado em model:", err);
+    throw new Error("Erro ao inserir membro no chamado em model");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function transferirChamado(idChamado: number, idQuadro: number) {
+  try {
+    const quadro = await prisma.chamado.update({
+      where: {
+        id: idChamado,
+      },
+      data: {
+        quadroId: idQuadro
+      },
+    });
+
+    return quadro ? true : false;
+  } catch (err) {
+    console.error("Erro ao transferir chamado model:", err);
+    return false;
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+

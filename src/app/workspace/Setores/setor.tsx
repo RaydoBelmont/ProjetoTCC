@@ -1,8 +1,10 @@
 import { usePathname, useRouter } from "next/navigation";
 import { Button } from "../../lib/material-tailwindcss/material-tailwindcss";
-import ModalCadSetor from "./modalCadSetor/modalCad";
+import ModalCadSetor from "./modals/modalCad";
+import ModalGerenciarMembrosSetor from "./modals/modalMembrosSetor";
 import { useState } from "react";
 import { FaEdit } from "react-icons/fa";
+import { IoMdPersonAdd } from "react-icons/io";
 import CryptoJS from "crypto-js";
 import Loading from "../[idWorkspace]/Loading";
 
@@ -18,20 +20,27 @@ type PropsSetor = {
 };
 
 export default function Setor(props: PropsSetor) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [tipoModal, setTipoModal] = useState("");
+  const [isOpenCadSetor, setIsOpenCadSetor] = useState(false);
+  const [isOpenMembros, setIsOpenMembros] = useState(false);
+  const [tipoModalSetor, setTipoModalSetor] = useState("");
+
   const [idSetor, setIdSetor] = useState<number>();
+  const [idSetorModalMembro, setIdSetorModalMembro] = useState<number>();
   const router = useRouter();
   const pathname = usePathname();
 
-  const acaoAbrirModal = (tipo: string, idSetorEditar?: number) => {
-    setTipoModal(tipo);
+  const acaoAbrirModalSetor = (tipo: string, idSetorEditar?: number) => {
+    setTipoModalSetor(tipo);
     if (idSetorEditar) {
       setIdSetor(idSetorEditar);
     }
-    setIsOpen(true);
+    setIsOpenCadSetor(true);
   };
 
+  const acaoAbrirModalMembros = (idSetorSelecionado: number) => {
+    setIdSetorModalMembro(idSetorSelecionado);
+    setIsOpenMembros(true);
+  };
   const redirecionar = async (idSetor: number) => {
     if (typeof window !== "undefined") {
       const secretKey = String(process.env.CHAVE_CRIPTO);
@@ -58,16 +67,16 @@ export default function Setor(props: PropsSetor) {
               <>
                 <Button
                   className="bg-[#202938] text-xl normal-case text-teal-300"
-                  onClick={() => acaoAbrirModal("INSERIR")}
+                  onClick={() => acaoAbrirModalSetor("INSERIR")}
                 >
                   + Novo Setor
                 </Button>
                 <ModalCadSetor
-                  isOpen={isOpen}
-                  setModalOpen={() => setIsOpen(!isOpen)}
+                  isOpen={isOpenCadSetor}
+                  setModalOpen={() => setIsOpenCadSetor(!isOpenCadSetor)}
                   idWorkspace={props.idWorkspace}
                   atualizarSetores={props.atualizarSetores}
-                  tipoModal={tipoModal}
+                  tipoModal={tipoModalSetor}
                   setorId={idSetor}
                 />
               </>
@@ -75,22 +84,42 @@ export default function Setor(props: PropsSetor) {
 
             {props.Setor.map((setor, index) => (
               <div key={index} className="flex ">
-                <Button
-                  onClick={() => redirecionar(setor.id)}
-                  className="bg-[#202938] text-xl normal-case text-teal-300 w-full"
-                >
-                  {setor.nome}
-                </Button>
+                <div className="flex bg-[#202938] rounded-lg w-full items-center">
+                  <Button
+                    onClick={() => redirecionar(setor.id)}
+                    className="bg-transparent text-xl normal-case text-teal-300 w-full truncate"
+                    title={setor.nome}
+                  >
+                    {setor.nome}
+                  </Button>
+                  {props.isAdmin && (
+                    <button
+                      className="mr-4 rounded-lg hover:bg-gray-800 p-1"
+                      onClick={() => acaoAbrirModalMembros(setor.id)}
+                    >
+                      <IoMdPersonAdd size={18} />
+                    </button>
+                  )}
+                </div>
                 {props.isAdmin && (
                   <button
                     className=" bg-[#2d96c8] text-black normal-case text-xl pl-4 pr-4 rounded-lg"
-                    onClick={() => acaoAbrirModal("EDITAR", setor.id)}
+                    onClick={() => acaoAbrirModalSetor("EDITAR", setor.id)}
                   >
                     <FaEdit className="text-xl" />
                   </button>
                 )}
               </div>
             ))}
+
+            {isOpenMembros ? (
+              <ModalGerenciarMembrosSetor
+                isOpen={isOpenMembros}
+                setModalOpen={() => setIsOpenMembros(!isOpenMembros)}
+                idSetor={idSetorModalMembro}
+                workspaceId={props.idWorkspace}
+              />
+            ) : null}
           </div>
         </div>
       </div>

@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useClickAway } from "react-use";
 import { FaPlus, FaEdit, FaSave, FaTimes } from "react-icons/fa";
 import { inserirPrioridade } from "@/app/lib/PrioridadesFunctions/libInserirPrioridade";
@@ -13,8 +13,8 @@ interface SelectPrioridadesProps {
   listaPrioridades: Prioridade[];
   atualizaLista: () => void;
   setorId: number;
-  setarIdPrioridade: (idStatus: number) => void
-
+  setarIdPrioridade: (idStatus: number) => void;
+  valorInicial?: Prioridade;
 }
 
 const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
@@ -22,10 +22,10 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
   atualizaLista,
   setorId,
   setarIdPrioridade,
+  valorInicial,
 }) => {
-  const [prioridadeSelecionada, setPrioridadeSelecionada] = useState<Prioridade | null>(
-    null
-  );
+  const [prioridadeSelecionada, setPrioridadeSelecionada] =
+    useState<Prioridade | null>(null);
   const [isOpen, setIsOpen] = useState(false);
   const [editando, setEditando] = useState<Prioridade | null>(null);
   const [nomeEditado, setNomeEditado] = useState("");
@@ -43,7 +43,7 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
   });
 
   const acaoSelecionarPrioridade = (prioridade: Prioridade) => {
-    setarIdPrioridade(prioridade.id)
+    setarIdPrioridade(prioridade.id);
     setPrioridadeSelecionada(prioridade);
     setIsOpen(false);
   };
@@ -57,12 +57,18 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
     setNomeEditado(prioridade.nome);
   };
 
-  const acaoSalvarEdicao = async (event: React.FormEvent, prioridadeId: number) => {
+  const acaoSalvarEdicao = async (
+    event: React.FormEvent,
+    prioridadeId: number
+  ) => {
     event.preventDefault();
     if (editando) {
-      const prioridadeEditado = await editarPrioridade(prioridadeId, nomeEditado)
-      if(prioridadeEditado){
-        atualizaLista()
+      const prioridadeEditado = await editarPrioridade(
+        prioridadeId,
+        nomeEditado
+      );
+      if (prioridadeEditado) {
+        atualizaLista();
         setEditando(null);
         setNomeEditado("");
       }
@@ -90,17 +96,26 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
     setNomeNovaPrioridade("");
   };
 
-  const acaoSalvarNovaPrioridade =  async (event: React.FormEvent) => {
+  const acaoSalvarNovaPrioridade = async (event: React.FormEvent) => {
     event.preventDefault();
     if (adicionando) {
-      const novaPrioridade = await inserirPrioridade(setorId, nomeNovaPrioridade)
-      if(novaPrioridade){
-        atualizaLista()
+      const novaPrioridade = await inserirPrioridade(
+        setorId,
+        nomeNovaPrioridade
+      );
+      if (novaPrioridade) {
+        atualizaLista();
         setAdicionando(false);
         setNomeNovaPrioridade("");
       }
     }
   };
+
+  useEffect(() => {
+    if (valorInicial) {
+      setPrioridadeSelecionada(valorInicial);
+    }
+  }, [valorInicial]);
 
   return (
     <div className="relative w-full">
@@ -110,7 +125,9 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
         onClick={() => setIsOpen((prev) => !prev)}
         className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white text-start"
       >
-        {prioridadeSelecionada ? prioridadeSelecionada.nome : "Selecione uma Prioridade"}
+        {prioridadeSelecionada
+          ? prioridadeSelecionada.nome
+          : "Selecione uma Prioridade"}
       </button>
 
       {isOpen && (
@@ -127,7 +144,7 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
                 >
                   {editando && editando.id === status.id ? (
                     <form
-                    onSubmit={(event) => acaoSalvarEdicao(event, status.id)} 
+                      onSubmit={(event) => acaoSalvarEdicao(event, status.id)}
                       className="flex items-center space-x-2 w-full"
                     >
                       <input

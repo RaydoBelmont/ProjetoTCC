@@ -44,9 +44,10 @@ export async function GET(request: NextRequest) {
   
       const idSetor = decryptedData.idSetor;
       const nomeSetor = decryptedData.nome;
+      const idUser = decryptedData.idUser;
   
       // Salvar o novo quadro
-      const novoQuadro = await savarQuadro(nomeSetor, idSetor);
+      const novoQuadro = await savarQuadro(nomeSetor, idSetor, idUser);
       return NextResponse.json(novoQuadro, { status: 200 });
   
     } catch (error) {

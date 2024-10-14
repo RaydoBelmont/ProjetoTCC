@@ -9,9 +9,9 @@ export const listarQuadros = async (idSetor: number) => {
     console.error('Erro ao obter Quadros em Controllet:', error);
   }
 }
-export const savarQuadro = async (nome: string, idSetor: number) => {
+export const savarQuadro = async (nome: string, idSetor: number, resposavelId: number) => {
     try {
-      const novoQuadro = await criarQuadro(nome, idSetor);
+      const novoQuadro = await criarQuadro(nome, idSetor, resposavelId);
       return novoQuadro
 
     } catch (error) {

@@ -10,6 +10,8 @@ import {
 } from "../../../lib/material-tailwindcss/material-tailwindcss";
 import { inserirSetor } from "@/app/lib/SetoresFunctions/libInserirSetor";
 import { editarSetor } from "@/app/lib/SetoresFunctions/libEditarSetor";
+import { buscaIdUserPorEmail } from "@/app/lib/UserFunctions/buscaIDuser";
+import { useSession } from "next-auth/react";
 
 type propsCadSetor = {
   isOpen: boolean;
@@ -21,6 +23,7 @@ type propsCadSetor = {
 };
 
 export default function ModalCadSetor(props: propsCadSetor) {
+  const { data: session } = useSession();
   const [nomeCriar, setNomeCriar] = useState<string>("");
   const [nomeEditar, setNomeEditar] = useState<string>("");
 
@@ -39,7 +42,12 @@ export default function ModalCadSetor(props: propsCadSetor) {
     switch (props.tipoModal) {
       case "INSERIR":
         try {
-          const novoSetor = await inserirSetor(props.idWorkspace, nomeCriar);
+          const idUser = await buscaIdUserPorEmail(session.user.email);
+          const novoSetor = await inserirSetor(
+            props.idWorkspace,
+            nomeCriar,
+            idUser
+          );
           if (novoSetor) {
             alert("Novo Setor inserido com Sucesso!");
             setNomeCriar("");
@@ -89,6 +97,7 @@ export default function ModalCadSetor(props: propsCadSetor) {
                   required
                   crossOrigin={""}
                   color="white"
+                  maxLength={25}
                 />
               </CardBody>
               <CardFooter className="pt-0 flex justify-end space-x-2">
@@ -129,6 +138,7 @@ export default function ModalCadSetor(props: propsCadSetor) {
                   required
                   crossOrigin={""}
                   color="white"
+                  maxLength={25}
                 />
               </CardBody>
               <CardFooter className="pt-0 flex justify-end space-x-2">

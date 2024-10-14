@@ -5,6 +5,9 @@ export const getQuadros = async (idSetor: number) => {
     const quadros = await prisma.quadro.findMany({
       where: { setorId: idSetor },
       orderBy: { id: 'asc' },
+      include: {
+        responsavel: true, // Traz os dados do responsável, caso necessário
+      },
     });
     return quadros;
   } catch (error) {
@@ -14,33 +17,35 @@ export const getQuadros = async (idSetor: number) => {
 };
 
 
-export const criarQuadro = async (nome: string, setorId: number) => {
+export const criarQuadro = async (nome: string, setorId: number, responsavelId: number) => {
   try {
     const newQuadro = await prisma.quadro.create({
       data: {
         nome: nome,
-        setorId: setorId
+        setorId,
+        responsavelId
       },
     });
     return newQuadro;
   } catch (error) {
-    console.error("Erro ao criar a Quadro:", error);
-    throw new Error("Ocorreu um erro ao criar a Quadro.");
+    console.error("Erro ao criar o Quadro:", error);
+    throw new Error("Ocorreu um erro ao criar o Quadro.");
   }
 };
+
 
 export const editarQuadro = async (nome: string, quadroId: number) => {
   try {
     const quadroEditado = await prisma.quadro.update({
-      where:{id: quadroId},
+      where: { id: quadroId },
       data: {
-        nome: nome
+        nome,
       },
     });
     return quadroEditado;
   } catch (error) {
-    console.error("Erro ao editar a Quadro:", error);
-    throw new Error("Ocorreu um erro ao editar a Quadro.");
+    console.error("Erro ao editar o Quadro:", error);
+    throw new Error("Ocorreu um erro ao editar o Quadro.");
   }
 };
 

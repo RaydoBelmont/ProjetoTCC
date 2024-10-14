@@ -11,6 +11,7 @@ import {
 import { inserirQuadro } from "@/app/lib/QuadrosFunctions/libInserirQuadro";
 import { editarQuadro } from "@/app/lib/QuadrosFunctions/libEditarQuadro";
 
+
 type propsCadQuadro = {
   isOpen: boolean;
   setModalOpen: () => void;
@@ -18,6 +19,7 @@ type propsCadQuadro = {
   atualizarQuadros?: () => void;
   tipoModal: string;
   quadroId?: number;
+  userId: number;
 };
 
 export default function ModalCadQuadro(props: propsCadQuadro) {
@@ -39,7 +41,7 @@ export default function ModalCadQuadro(props: propsCadQuadro) {
     switch (props.tipoModal) {
       case "INSERIR":
         try {
-          const novoQuadro = await inserirQuadro(props.idSetor, nomeCriar);
+          const novoQuadro = await inserirQuadro(props.idSetor, nomeCriar, props.userId);
           if (novoQuadro) {
             alert("Novo Quadro inserido com Sucesso!");
             setNomeCriar("");

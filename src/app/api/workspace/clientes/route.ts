@@ -46,8 +46,6 @@ export async function POST(request: NextRequest) {
       contatos,
       endereco
     );
-
-    console.log(cliente);
     return NextResponse.json(cliente, { status: 200 });
   } catch (error) {
     console.error("Erro ao tentar criar um novo Cliente em API:", error);

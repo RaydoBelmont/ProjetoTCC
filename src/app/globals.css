@@ -64,11 +64,13 @@ select {
   width: 8px;
   background-color: #202938; /* Cor de fundo da barra de rolagem */
   border-radius: 10px; /* Arredondando as bordas da barra */
+  
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #07b6d5; /* Cor do "polegar" da barra de rolagem */
   border-radius: 10px; /* Arredondando o polegar da barra */
+  
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
@@ -78,5 +80,10 @@ select {
 .custom-scrollbar::-webkit-scrollbar-track {
   background-color: #394152; /* Cor do trilho da barra de rolagem */
   border-radius: 10px; /* Arredondando o trilho da barra */
+
 }
 
+
+.break-word {
+  word-break: break-word;
+}

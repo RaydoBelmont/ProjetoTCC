@@ -33,21 +33,23 @@ type propsChamado = {
   chamadoId?: number;
 };
 
-type Status = {
+export type Status = {
   id: number;
   nome: string;
 };
 
-type Prioridade = {
+export type Prioridade = {
   id: number;
   nome: string;
 };
 
-type Cliente = {
+export type Cliente = {
   id: number;
   nome: string;
   cpfCnpj: string;
 };
+
+
 
 export default function ModalCadChamado(props: propsChamado) {
   const { data: session } = useSession();
@@ -165,14 +167,16 @@ export default function ModalCadChamado(props: propsChamado) {
     const idMembro = await buscaIdUserPorEmail(session.user.email);
 
     try {
-      console.log( cliente.id,
+      console.log(
+        cliente.id,
         titulo,
         descricao,
         idStatus,
         idPrioridade,
         idMembro,
         props.idQuadro,
-        props.idWorkspace)
+        props.idWorkspace
+      );
       const chamado = await inserirChamado(
         cliente.id,
         titulo,
@@ -186,7 +190,7 @@ export default function ModalCadChamado(props: propsChamado) {
       if (chamado) {
         console.log(chamado);
         alert("Chamado inserido com Sucesso!");
-        props.atualizarChamados(props.idQuadro)
+        props.atualizarChamados(props.idQuadro);
         acaoBotaoCancelar();
       }
     } catch (error) {
@@ -202,7 +206,7 @@ export default function ModalCadChamado(props: propsChamado) {
       className="bg-transparent shadow-none"
       dismiss={{ enabled: false }}
     >
-      <Card className="flex flex-row mx-auto w-full max bg-[#384152]">
+      <Card className="flex flex-row mx-auto w-full  bg-[#384152]">
         <form onSubmit={acaoSalvarChamado} className="flex-grow">
           <CardBody className="flex flex-col gap-4">
             <Typography variant="h4" color="white">
@@ -211,7 +215,6 @@ export default function ModalCadChamado(props: propsChamado) {
                 : "Editar Chamado"}
             </Typography>
 
-            {/* Substituindo react-select pelo CustomSelect */}
             <SelectClientes
               options={clienteOptions}
               value={cliente}

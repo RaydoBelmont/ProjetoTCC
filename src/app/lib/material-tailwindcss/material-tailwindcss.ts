@@ -28,7 +28,8 @@ import {
     Navbar,
     Select,
     Option,
-    List, ListItem, Chip 
+    List, ListItem, Chip,
+    ButtonGroup
 
   } from "@material-tailwind/react";
  
@@ -60,5 +61,6 @@ export {
   Navbar,
   Select,
   Option,
-  List, ListItem, Chip 
+  List, ListItem, Chip ,
+  ButtonGroup
 };
