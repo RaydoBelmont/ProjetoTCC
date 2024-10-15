@@ -24,19 +24,10 @@ export async function getHistoricoChamado(idChamado: number) {
         let nomeNovo = null;
 
         if (item.tipo === "Status" && item.valorAnterior && item.valorNovo) {
-          // Busca os nomes dos status
-          const statusAnterior = await prisma.status.findUnique({
-            where: { id: Number(item.valorAnterior) },
-            select: { nome: true },
-          });
 
-          const statusNovo = await prisma.status.findUnique({
-            where: { id: Number(item.valorNovo) },
-            select: { nome: true },
-          });
 
-          nomeAnterior = statusAnterior?.nome || "Desconhecido";
-          nomeNovo = statusNovo?.nome || "Desconhecido";
+          nomeAnterior = item.valorAnterior || "Desconhecido";
+          nomeNovo = item.valorNovo|| "Desconhecido";
         } else if (item.tipo === "Prioridade" && item.valorAnterior && item.valorNovo) {
           // Busca os nomes das prioridades
           const prioridadeAnterior = await prisma.prioridade.findUnique({

@@ -42,7 +42,7 @@ export type Chamado = {
   descricao: string;
   criadoEm: Date;
   atualizadoEm: Date;
-  statusId: number;
+  status: string;
   prioridadeId: number;
   criadoPor: number;
   clienteId: number;
@@ -51,9 +51,6 @@ export type Chamado = {
   numeroSequencial: number;
   cliente: {
     id: number;
-    nome: string;
-  };
-  status: {
     nome: string;
   };
   prioridade: {
@@ -156,7 +153,6 @@ const Setor: React.FC = () => {
             chamadosMap[quadro.id] = chamados;
           })
         );
-
         setChamadosPorQuadro(chamadosMap);
         setCarregandoTodosChamados(false); // Finaliza o estado de carregamento geral
       }
@@ -340,7 +336,10 @@ const Setor: React.FC = () => {
                       </Button>
                     </CardHeader>
                     <div className="flex flex-col h-full overflow-y-auto custom-scrollbar">
-                      <span className="text-gray-500 p-1 text-sm text-center truncate" title={quadro.responsavel.nome}>
+                      <span
+                        className="text-gray-500 p-1 text-sm text-center truncate"
+                        title={quadro.responsavel.nome}
+                      >
                         Responsavel: {quadro.responsavel.nome}
                       </span>
                       <CardBody className="flex flex-col space-y-2 pb-4 pt-4 ">
@@ -355,10 +354,60 @@ const Setor: React.FC = () => {
                               className="pt-1"
                             >
                               <div className="flex justify-between">
-                                <Chip
-                                  value={formatarData(chamado.criadoEm)}
-                                  className="text-[11px] py-1 px-2 mb-1 bg-green-800"
-                                ></Chip>
+                                <div className="flex gap-2">
+                                  <Chip
+                                    value={formatarData(chamado.criadoEm)}
+                                    className="text-[11px] py-1 px-2 mb-1 bg-blue-gray-600 text-white"
+                                  ></Chip>
+                                  {(() => {
+                                    switch (chamado.status) {
+                                      case "EM_ABERTO":
+                                        return (
+                                          <Chip
+                                            value={"Em Aberto"}
+                                            className="text-[11px] py-1 px-2 mb-1 bg-green-800 normal-case"
+                                          />
+                                        );
+                                      case "EM_ANALISE":
+                                        return (
+                                          <Chip
+                                            value={"Em Análise"}
+                                            className="text-[11px] py-1 px-2 mb-1 bg-yellow-900 normal-case"
+                                          />
+                                        );
+                                      case "EM_ESPERA":
+                                        return (
+                                          <Chip
+                                            value={"Em Espera"}
+                                            className="text-[11px] py-1 px-2 mb-1 bg-brown-500 normal-case"
+                                          />
+                                        );
+                                      case "EM_ANDAMENTO":
+                                        return (
+                                          <Chip
+                                            value={"Em Andamento"}
+                                            className="text-[11px] py-1 px-2 mb-1 bg-blue-600 normal-case"
+                                          />
+                                        );
+                                      case "CONCLUIDO":
+                                        return (
+                                          <Chip
+                                            value={"Concluído"}
+                                            className="text-[11px] py-1 px-2 mb-1 bg-green-500 normal-case"
+                                          />
+                                        );
+                                      case "CANCELADO":
+                                        return (
+                                          <Chip
+                                            value={"Cancelado"}
+                                            className="text-[11px] py-1 px-2 mb-1 bg-red-600 normal-case"
+                                          />
+                                        );
+                                      default:
+                                        return null;
+                                    }
+                                  })()}
+                                </div>
                                 <Chip
                                   value={`# ${chamado.numeroSequencial}`}
                                   className="text-[11px] py-1 px-2 mb-1 select-text"

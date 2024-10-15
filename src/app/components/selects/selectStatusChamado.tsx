@@ -1,35 +1,46 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useClickAway } from "react-use";
-import { FaPlus, FaEdit, FaSave, FaTimes } from "react-icons/fa";
-import { inserirStatus } from "@/app/lib/StatusFunctions/libInserirStatus";
-import { editarStatus } from "@/app/lib/StatusFunctions/libEditarStatus";
 
 interface Status {
   id: number;
   nome: string;
+  value: StatusEnum
 }
 
 interface SelectStatusProps {
-  statusList: Status[];
-  atualizaLista: () => void;
   setorId: number;
-  setarIdStatus: (idStatus: number) => void;
-  valorInicial?: Status;
+  setarStatus: (status: string) => void;
+  valorInicial?: string;
 }
 
+export enum StatusEnum {
+  EmAberto = "EM_ABERTO",
+  EmAnalise = "EM_ANALISE",
+  EmEspera = "EM_ESPERA",
+  EmAndamento = "EM_ANDAMENTO",
+  Concluido = "CONCLUIDO",
+  Cancelado = "CANCELADO",
+}
+
+export const statusOptions = [
+  { id: 1, nome: "Em Aberto", value: StatusEnum.EmAberto },
+  { id: 2, nome: "Em Analise", value: StatusEnum.EmAnalise },
+  { id: 3, nome: "Em Espera", value: StatusEnum.EmEspera },
+  { id: 4, nome: "Em Andamento", value: StatusEnum.EmAndamento },
+  { id: 5, nome: "Concluido", value: StatusEnum.Concluido },
+  { id: 6, nome: "Cancelado", value: StatusEnum.Cancelado },
+];
+
 const SelectStatus: React.FC<SelectStatusProps> = ({
-  statusList,
-  atualizaLista,
-  setorId,
-  setarIdStatus,
+  setarStatus,
   valorInicial,
 }) => {
-  const [statusSelecionado, setStatusSelecionado] = useState<Status | null>(null);
+  const [statusSelecionado, setStatusSelecionado] = useState<Status | null>(
+    null
+  );
   const [isOpen, setIsOpen] = useState(false);
-  const [editando, setEditando] = useState<Status | null>(null);
-  const [nomeEditado, setNomeEditado] = useState("");
-  const [adicionando, setAdicionando] = useState(false);
-  const [nomeNovoStatus, setNomeNovoStatus] = useState("");
+
+  const statusList = statusOptions;
 
   const popoverRef = useRef(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -42,68 +53,15 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
   });
 
   const acaoSelecionarStatus = (status: Status) => {
-    setarIdStatus(status.id);
+    setarStatus(status.value);
     setStatusSelecionado(status);
     setIsOpen(false);
   };
 
-  const acaoEditarStatus = (status: Status) => {
-    if (adicionando) {
-      setNomeNovoStatus("");
-      setAdicionando(false);
-    }
-    setEditando(status);
-    setNomeEditado(status.nome);
-  };
-
-  const acaoSalvarEdicao = async (event: React.FormEvent, statusId: number) => {
-    event.preventDefault();
-    if (editando) {
-      const statusEditado = await editarStatus(statusId, nomeEditado);
-      if (statusEditado) {
-        atualizaLista();
-        setEditando(null);
-        setNomeEditado("");
-      }
-    }
-  };
-
-  const acaoCancelarEditando = (event: React.FormEvent) => {
-    event.preventDefault();
-    setEditando(null);
-    setNomeEditado("");
-  };
-
-  const acaoCancelarAdicao = (event: React.FormEvent) => {
-    event.preventDefault();
-    setNomeNovoStatus("");
-    setAdicionando(false);
-  };
-
-  const acaoNovoStatus = () => {
-    if (editando) {
-      setEditando(null);
-      setNomeEditado("");
-    }
-    setAdicionando(true);
-    setNomeNovoStatus("");
-  };
-
-  const acaoSalvarNovoStatus = async (event: React.FormEvent) => {
-    event.preventDefault();
-    if (adicionando) {
-      const novoStatus = await inserirStatus(setorId, nomeNovoStatus);
-      if (novoStatus) {
-        atualizaLista();
-        setAdicionando(false);
-        setNomeNovoStatus("");
-      }
-    }
-  };
-
   useEffect(() => {
     if (valorInicial) {
-      setStatusSelecionado(valorInicial);
+      const statusInicial = statusOptions.find(s => s.value === valorInicial)
+      setStatusSelecionado(statusInicial);
     }
   }, [valorInicial]);
   return (
@@ -129,32 +87,7 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
                   key={status.id}
                   className="flex justify-between items-center p-2 hover:bg-gray-300"
                 >
-                  {editando && editando.id === status.id ? (
-                    <form
-                      onSubmit={(event) => acaoSalvarEdicao(event, status.id)}
-                      className="flex items-center space-x-2 w-full"
-                    >
-                      <input
-                        required
-                        type="text"
-                        value={nomeEditado}
-                        onChange={(e) => setNomeEditado(e.target.value)}
-                        className="w-full p-1 border border-gray-300 rounded focus:outline-none"
-                      />
-                      <button
-                        type="submit"
-                        className="text-green-500 hover:text-green-700"
-                      >
-                        <FaSave />
-                      </button>
-                      <button
-                        onClick={acaoCancelarEditando}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        <FaTimes />
-                      </button>
-                    </form>
-                  ) : (
+                  {
                     <div className="flex justify-between items-center w-full">
                       <button
                         onClick={() => acaoSelecionarStatus(status)}
@@ -162,14 +95,8 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
                       >
                         {status.nome}
                       </button>
-                      <button
-                        onClick={() => acaoEditarStatus(status)}
-                        className="text-blue-500 hover:text-blue-700"
-                      >
-                        <FaEdit />
-                      </button>
                     </div>
-                  )}
+                  }
                 </li>
               ))
             ) : (
@@ -178,42 +105,6 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
               </li>
             )}
           </ul>
-
-          {adicionando ? (
-            <form
-              onSubmit={acaoSalvarNovoStatus}
-              className="p-2 flex space-x-2"
-            >
-              <input
-                required
-                type="text"
-                value={nomeNovoStatus}
-                onChange={(e) => setNomeNovoStatus(e.target.value)}
-                placeholder="Novo status..."
-                className="w-full p-1 border border-gray-300 rounded focus:outline-none"
-              />
-              <button
-                type="submit"
-                className="text-green-500 hover:text-green-700"
-              >
-                <FaSave />
-              </button>
-              <button
-                onClick={acaoCancelarAdicao}
-                className="text-red-500 hover:text-red-700"
-              >
-                <FaTimes />
-              </button>
-            </form>
-          ) : (
-            <button
-              onClick={acaoNovoStatus}
-              className="flex items-center justify-center w-full p-2 text-green-500 hover:text-green-700 border-t border-gray-400"
-            >
-              <FaPlus className="mr-2" />
-              Adicionar status
-            </button>
-          )}
         </div>
       )}
     </div>

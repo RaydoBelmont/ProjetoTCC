@@ -7,8 +7,17 @@ import {
   insereMembro,
   removeMembro,
   buscarChamado,
-  transfereChamado
+  transfereChamado,
+  finalizaChamado
 } from "../../../../../../controllers/Chamados/chamadosController";
+import { StatusEnum } from '@prisma/client'; // importe seu enum de status
+
+const obterStatusEnum = (status: string): StatusEnum | null => {
+  if (status in StatusEnum) {
+    return status as StatusEnum; // Cast para o tipo StatusEnum
+  }
+  return null; // Retorna null se não for um valor válido
+}
 
 export async function GET(request: NextRequest) {
   if (request.method === "GET") {
@@ -72,7 +81,6 @@ export async function POST(request: NextRequest) {
   const clienteId = Number(decryptedData.clienteId);
   const titulo = decryptedData.titulo;
   const descricao = decryptedData.descricao;
-  const statusId = Number(decryptedData.statusId);
   const prioridadeId = Number(decryptedData.prioridadeId);
   const membroId = Number(decryptedData.membroId);
   const quadroId = Number(decryptedData.quadroId);
@@ -82,24 +90,24 @@ export async function POST(request: NextRequest) {
     !clienteId ||
     !titulo ||
     !descricao ||
-    !statusId ||
     !prioridadeId ||
     !membroId ||
     !quadroId ||
     !workspaceId
   ) {
     return NextResponse.json(
-      { error: "Dados insuficientes (setorId ou nome ausente)" },
+      { error: "Dados insuficientes (um ou mais campos ausentes)" },
       { status: 400 }
     );
   }
+
+
 
   try {
     const chamado = await insereChamado(
       clienteId,
       titulo,
       descricao,
-      statusId,
       prioridadeId,
       membroId,
       quadroId,
@@ -107,6 +115,7 @@ export async function POST(request: NextRequest) {
     );
     return NextResponse.json(chamado, { status: 200 });
   } catch (error) {
+    console.error("Erro ao inserir chamado:", error); // Log do erro para depuração
     return NextResponse.json(
       { error: "Ocorreu um erro ao inserir chamado em API." },
       { status: 500 }
@@ -131,13 +140,14 @@ export async function PATCH(request: NextRequest) {
   const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
   const idChamado = Number(decryptedData.idChamado);
-  const idNovoStatus = Number(decryptedData.idNovoStatus);
+  const statusString = decryptedData.status;
   const idNovaPrioridade = Number(decryptedData.idNovaPrioridade);
   const novaDescricao = decryptedData.novaDescricao;
   const idNovoCliente = Number(decryptedData.idNovoCliente);
   const idNovoMembro = Number(decryptedData.idNovoMembro);
   const idMembroRemover = Number(decryptedData.idMembroRemover);
   const idQuadroTransferir = Number(decryptedData.idQuadroTransferir);
+  const finalizarChamado = decryptedData.finalizar;
 
   if (!idChamado) {
     return NextResponse.json(
@@ -146,11 +156,14 @@ export async function PATCH(request: NextRequest) {
     );
   }
 
-  if (idNovoStatus || idNovaPrioridade || novaDescricao || idNovoCliente) {
+
+
+  if (statusString || idNovaPrioridade || novaDescricao || idNovoCliente) {
     try {
+      const status = obterStatusEnum(statusString);
       const chamadoAlterado = await alteraChamado(
         idChamado,
-        idNovoStatus,
+        status,
         idNovaPrioridade,
         novaDescricao,
         idNovoCliente
@@ -158,7 +171,7 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json(chamadoAlterado, { status: 200 });
     } catch (error) {
       return NextResponse.json(
-        { error: "Ocorreu um erro ao inserir chamado em API." },
+        { error: "Ocorreu um erro ao inserir chamado em API." + error.message + "------------" + statusString},
         { status: 500 }
       );
     }
@@ -169,7 +182,7 @@ export async function PATCH(request: NextRequest) {
         return NextResponse.json(membroInserido, { status: 200 });
       } catch (error) {
         return NextResponse.json(
-          { error: "Ocorreu um erro ao inserir chamado em API." },
+          { error: "Ocorreu um erro ao inserir chamado em API." + error },
           { status: 500 }
         );
       }
@@ -195,6 +208,20 @@ export async function PATCH(request: NextRequest) {
     } catch (error) {
       return NextResponse.json(
         { error: "Ocorreu um erro ao transferir chamado em API." },
+        { status: 500 }
+      );
+    }
+  }else if(finalizarChamado){
+    try {
+      const chamadoFinalizado = await finalizaChamado(idChamado)
+      if(chamadoFinalizado === true){
+        return NextResponse.json(true, { status: 200 });
+      }else{
+        return NextResponse.json(false, { status: 200 });
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Ocorreu um erro ao finalizar chamado em API." },
         { status: 500 }
       );
     }

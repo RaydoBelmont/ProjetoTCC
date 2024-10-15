@@ -12,8 +12,6 @@ import {
 import { buscarClientes } from "@/app/lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
 import InputTextArea from "@/app/components/inputs/inputText";
 import SelectClientes from "@/app/components/selects/SelectClientes";
-import SelectStatus from "@/app/components/selects/selectStatusChamado";
-import { listaStatus } from "@/app/lib/StatusFunctions/libListaStatus";
 import { inserirChamado } from "@/app/lib/ChamadosFunctions/libInserirChamado";
 import CryptoJS from "crypto-js";
 import { useParams } from "next/navigation";
@@ -21,6 +19,7 @@ import { listaPrioridades } from "@/app/lib/PrioridadesFunctions/libListaPriorid
 import SelectPrioridades from "@/app/components/selects/selectPrioridades";
 import { buscaIdUserPorEmail } from "../../../../../lib/UserFunctions/buscaIDuser";
 import { useSession } from "next-auth/react";
+
 
 type propsChamado = {
   isOpen: boolean;
@@ -31,11 +30,6 @@ type propsChamado = {
   atualizarChamados?: (idQuadro: number) => void;
   tipoModal: string;
   chamadoId?: number;
-};
-
-export type Status = {
-  id: number;
-  nome: string;
 };
 
 export type Prioridade = {
@@ -56,11 +50,9 @@ export default function ModalCadChamado(props: propsChamado) {
   const { idWorkspace, idSetor } = useParams();
   const [titulo, setTitulo] = useState<string>("");
   const [descricao, setDescricao] = useState<string>("");
-  const [idStatus, setIdStatus] = useState<number>();
   const [idPrioridade, setIdPrioridade] = useState<number>();
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [clientes, setClientes] = useState<Cliente[]>([]);
-  const [listaDeStatus, setListaDeStatus] = useState<Status[]>([]);
   const [listaDePrioridades, setListaDePrioridades] = useState<Prioridade[]>(
     []
   );
@@ -71,10 +63,6 @@ export default function ModalCadChamado(props: propsChamado) {
         try {
           const listaClientes = await buscarClientes(props.idWorkspace);
           setClientes(listaClientes);
-
-          // Buscar listas de status e prioridades com base no idSetor descriptografado
-          const resultStatus = await listaStatus(props.idSetor);
-          setListaDeStatus(resultStatus);
 
           const resultPrioridades = await listaPrioridades(props.idSetor);
           setListaDePrioridades(resultPrioridades);
@@ -112,10 +100,6 @@ export default function ModalCadChamado(props: propsChamado) {
             );
             setClientes(listaClientes);
 
-            // Buscar listas de status e prioridades com base no idSetor descriptografado
-            const resultStatus = await listaStatus(Number(decryptedSetorId));
-            setListaDeStatus(resultStatus);
-
             const resultPrioridades = await listaPrioridades(
               Number(decryptedSetorId)
             );
@@ -140,7 +124,6 @@ export default function ModalCadChamado(props: propsChamado) {
     setTitulo("");
     setDescricao("");
     setIdPrioridade(null);
-    setIdStatus(null);
     setCliente(null);
     props.setModalOpen();
   };
@@ -150,11 +133,6 @@ export default function ModalCadChamado(props: propsChamado) {
     nome: cliente.nome,
     cpfCnpj: cliente.cpfCnpj,
   }));
-
-  const AtualizaListaStatus = async () => {
-    const result = await listaStatus(props.idSetor);
-    setListaDeStatus(result);
-  };
 
   const AtualizaListaPrioridades = async () => {
     const result = await listaPrioridades(props.idSetor);
@@ -167,21 +145,10 @@ export default function ModalCadChamado(props: propsChamado) {
     const idMembro = await buscaIdUserPorEmail(session.user.email);
 
     try {
-      console.log(
-        cliente.id,
-        titulo,
-        descricao,
-        idStatus,
-        idPrioridade,
-        idMembro,
-        props.idQuadro,
-        props.idWorkspace
-      );
       const chamado = await inserirChamado(
         cliente.id,
         titulo,
         descricao,
-        idStatus,
         idPrioridade,
         idMembro,
         props.idQuadro,
@@ -255,14 +222,6 @@ export default function ModalCadChamado(props: propsChamado) {
             Detalhes
           </Typography>
           <div className="flex flex-col gap-4">
-            {/* Select de Status */}
-            <SelectStatus
-              statusList={listaDeStatus}
-              atualizaLista={AtualizaListaStatus}
-              setorId={props.idSetor}
-              setarIdStatus={setIdStatus}
-            />
-
             {/* Select de Prioridade */}
             <SelectPrioridades
               listaPrioridades={listaDePrioridades}

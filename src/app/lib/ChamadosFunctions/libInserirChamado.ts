@@ -1,9 +1,9 @@
 import CryptoJS from "crypto-js";
 
+
 export const inserirChamado = async (clienteId: number, 
     titulo: string,
     descricao: string,
-    statusId: number,
     prioridadeId: number,
     membroId: number,
     quadroId: number,
@@ -14,7 +14,6 @@ export const inserirChamado = async (clienteId: number,
         clienteId, 
         titulo,
         descricao,
-        statusId,
         prioridadeId,
         membroId,
         quadroId,

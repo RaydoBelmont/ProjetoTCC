@@ -1,10 +1,10 @@
 import prisma from "../../prisma/prisma";
+import { StatusEnum } from "@prisma/client";
 
 export async function criarChamado(
   clienteId: number,
   titulo: string,
   descricao: string,
-  statusId: number,
   prioridadeId: number,
   membroId: number,
   quadroId: number,
@@ -15,7 +15,6 @@ export async function criarChamado(
       data: {
         titulo: titulo,
         descricao: descricao,
-        statusId: statusId,
         prioridadeId: prioridadeId,
         criadoPor: membroId,
         clienteId: clienteId,
@@ -35,11 +34,6 @@ export async function criarChamado(
           select: {
             id: true,
             nome: true, // Inclui o nome do cliente
-          },
-        },
-        status: {
-          select: {
-            nome: true, // Inclui o nome do status
           },
         },
         prioridade: {
@@ -93,11 +87,6 @@ export const buscarChamadosPorQuadro = async (quadroId: number) => {
             nome: true, // Nome do cliente associado
           },
         },
-        status: {
-          select: {
-            nome: true, // Nome do status
-          },
-        },
         prioridade: {
           select: {
             nome: true, // Nome da prioridade
@@ -140,11 +129,6 @@ export const buscaChamado = async (chamadoId: number) => {
             nome: true, // Nome do cliente associado
           },
         },
-        status: {
-          select: {
-            nome: true, // Nome do status
-          },
-        },
         prioridade: {
           select: {
             nome: true, // Nome da prioridade
@@ -177,17 +161,17 @@ export const buscaChamado = async (chamadoId: number) => {
 
 export const alterarChamado = async (
   idChamado: number,
-  idNovoStatus?: number,
+  NovoStatus?: StatusEnum,
   idNovaPrioridade?: number,
   novaDescricao?: string,
   idNovoCliente?: number,
 ) => {
-  if(idNovoStatus){
+  if(NovoStatus){
     try {
       const chamado = await prisma.chamado.update({
         where: { id: idChamado },
         data: {
-          statusId: idNovoStatus,
+          status: NovoStatus,
         },
       });
       return chamado;
@@ -307,3 +291,20 @@ export async function transferirChamado(idChamado: number, idQuadro: number) {
   }
 }
 
+export async function finalizarChamado(idChamado: number) {
+  try {
+    const chamadoFinalizado = await prisma.chamado.update({
+      where:{id:idChamado},
+      data:{
+        status: StatusEnum.CONCLUIDO,
+      }
+    })
+
+    return chamadoFinalizado ? true : false
+  } catch (error) {
+    console.error("Erro ao finalizar chamado em model:", error);
+    throw new Error("Erro ao finalizar chamado em model");
+  } finally {
+    await prisma.$disconnect();
+  }
+}

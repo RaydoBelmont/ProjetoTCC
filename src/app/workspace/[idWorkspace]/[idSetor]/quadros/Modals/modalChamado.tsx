@@ -7,15 +7,13 @@ import {
   CardBody,
   Typography,
   Input,
-
 } from "../../../../../lib/material-tailwindcss/material-tailwindcss";
 import { IoClose } from "react-icons/io5";
 import { IoMdAdd, IoMdDoneAll } from "react-icons/io";
 import { IoIosArrowRoundForward } from "react-icons/io";
 import { Chamado, Quadro } from "../../page";
 import { buscarClientes } from "@/app/lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
-import { listaStatus } from "@/app/lib/StatusFunctions/libListaStatus";
-import { Cliente, Status, Prioridade } from "../Modals/modalCadChamado";
+import { Cliente, Prioridade } from "../Modals/modalCadChamado";
 import { listaPrioridades } from "@/app/lib/PrioridadesFunctions/libListaPrioridades";
 import { useParams } from "next/navigation";
 import SelectClientes from "@/app/components/selects/SelectClientes";
@@ -30,6 +28,8 @@ import { buscaChamado } from "@/app/lib/ChamadosFunctions/libListarChamados";
 import { FaRegSave } from "react-icons/fa";
 import { BsBoxArrowRight } from "react-icons/bs";
 import ModalTtransferir from "./modalTransferir";
+import { statusOptions } from "@/app/components/selects/selectStatusChamado";
+import ModalFinalizar from "./modalFinalizarChamado";
 
 type propsModalChamado = {
   isOpen: boolean;
@@ -66,12 +66,12 @@ export default function ModalChamado(props: propsModalChamado) {
   //isOpens de modals
   const [isOpenModalAddMembro, setIsOpenModalAddMembro] = useState(false);
   const [isOpenModalTransferir, setIsOpenModalTransferir] = useState(false);
+  const [isOpenModalFinalizar, setIsOpenModalFinalizar] = useState(false);
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [cliente, setCliente] = useState<Cliente | null>(null);
-  const [listaDeStatus, setListaDeStatus] = useState<Status[]>([]);
-  const [idStatus, setIdStatus] = useState<number>(props.chamado.statusId);
-  const [statusChamado, setStatusChamado] = useState<Status>();
+  const [status, setStatus] = useState<string>(props.chamado.status);
+
   const [listaDePrioridades, setListaDePrioridades] = useState<Prioridade[]>(
     []
   );
@@ -88,10 +88,14 @@ export default function ModalChamado(props: propsModalChamado) {
     props.setModalOpen();
     setComentario("");
     setCliente(null);
-    setIdStatus(null);
+    setStatus(null);
     setIdPrioridade(null);
     setDescricao(null);
     setHistorico(null);
+  };
+
+  const acaoFinalizarChamado = async () => {
+    setIsOpenModalFinalizar(!isOpenModalFinalizar);
   };
 
   const handleClienteChange = (selectedOption: Cliente | null) => {
@@ -131,11 +135,6 @@ export default function ModalChamado(props: propsModalChamado) {
     } else {
       alert("O chamado não pode ficar sem membros.");
     }
-  };
-
-  const AtualizaListaStatus = async () => {
-    const result = await listaStatus(props.idSetor);
-    setListaDeStatus(result);
   };
 
   const AtualizaListaPrioridades = async () => {
@@ -191,14 +190,14 @@ export default function ModalChamado(props: propsModalChamado) {
 
   const salvarAlteracoes = async () => {
     const atualizacoes: {
-      idNovoStatus?: number;
+      novoStatus?: string;
       idNovaPrioridade?: number;
       novaDescricao?: string;
       idNovoCliente?: number;
     } = {};
 
-    if (props.chamado.statusId !== idStatus) {
-      atualizacoes.idNovoStatus = idStatus;
+    if (props.chamado.status !== status) {
+      atualizacoes.novoStatus = status;
     }
 
     if (props.chamado.prioridadeId !== idPrioridade) {
@@ -217,7 +216,7 @@ export default function ModalChamado(props: propsModalChamado) {
       try {
         const result = await updateChamado(
           props.chamado.id,
-          atualizacoes.idNovoStatus,
+          atualizacoes.novoStatus,
           atualizacoes.idNovaPrioridade,
           atualizacoes.novaDescricao,
           atualizacoes.idNovoCliente
@@ -225,16 +224,16 @@ export default function ModalChamado(props: propsModalChamado) {
 
         if (result) {
           const novoHistoricoPromises = [];
-          if (atualizacoes.idNovoStatus) {
+          if (atualizacoes.novoStatus) {
             novoHistoricoPromises.push(
               novoHistorico(
                 "Status",
                 "alterou o status",
-                String(props.chamado.statusId),
-                String(idStatus)
+                String(props.chamado.status),
+                String(status)
               )
             );
-            setIdStatus(atualizacoes.idNovoStatus);
+            setStatus(atualizacoes.novoStatus);
           }
           if (atualizacoes.idNovaPrioridade) {
             novoHistoricoPromises.push(
@@ -306,9 +305,6 @@ export default function ModalChamado(props: propsModalChamado) {
           const listaClientes = await buscarClientes(props.idWorkspace);
           setClientes(listaClientes);
 
-          const resultStatus = await listaStatus(props.idSetor);
-          setListaDeStatus(resultStatus);
-
           const resultPrioridades = await listaPrioridades(props.idSetor);
           setListaDePrioridades(resultPrioridades);
         } else {
@@ -337,9 +333,6 @@ export default function ModalChamado(props: propsModalChamado) {
                 Number(decryptedWorkspaceId)
               );
               setClientes(listaClientes);
-
-              const resultStatus = await listaStatus(Number(decryptedSetorId));
-              setListaDeStatus(resultStatus);
 
               const resultPrioridades = await listaPrioridades(
                 Number(decryptedSetorId)
@@ -371,24 +364,18 @@ export default function ModalChamado(props: propsModalChamado) {
 
   useEffect(() => {
     // Garantir que os dados foram carregados antes de tentar setar os valores
-    if (props.isOpen && clientes.length > 0 && listaDeStatus.length > 0) {
+    if (props.isOpen && clientes.length > 0) {
       // Atualiza cliente
       const clienteSelecionado = clientes.find(
         (c) => c.id === props.chamado.clienteId
       );
       setCliente(clienteSelecionado || null);
 
-      // Atualiza status
-      const statusSelecionado = listaDeStatus.find(
-        (s) => s.id === props.chamado.statusId
-      );
-
       const prioridadeSelecionado = listaDePrioridades.find(
         (p) => p.id === props.chamado.prioridadeId
       );
 
-      setIdStatus(statusSelecionado ? statusSelecionado.id : null);
-      setStatusChamado(statusSelecionado || null);
+      setStatus(props.chamado.status);
       setIdPrioridade(prioridadeSelecionado ? prioridadeSelecionado.id : null);
       setPrioridadeChamado(prioridadeSelecionado || null);
       setDescricao(props.chamado.descricao);
@@ -396,10 +383,9 @@ export default function ModalChamado(props: propsModalChamado) {
   }, [
     props.isOpen,
     clientes,
-    listaDeStatus,
     listaDePrioridades,
     props.chamado.clienteId,
-    props.chamado.statusId,
+    props.chamado.status,
     props.chamado.prioridadeId,
   ]);
 
@@ -438,7 +424,11 @@ export default function ModalChamado(props: propsModalChamado) {
           {/* Lado esquerdo - Dados principais */}
           <CardBody className="flex flex-col gap-4 w-3/4">
             <div className="flex flex-row justify-between">
-              <Typography variant="h4" color="white" className="whitespace-normal break-all text-start">
+              <Typography
+                variant="h4"
+                color="white"
+                className="whitespace-normal break-all text-start"
+              >
                 {props.chamado.titulo}
               </Typography>
               <Typography
@@ -497,52 +487,81 @@ export default function ModalChamado(props: propsModalChamado) {
             </Typography>
             <div>
               {historico && historico.length > 0 ? (
-                historico.map((item, index) => (
-                  <div key={index} className="flex flex-col text-gray-500 p-1 ">
-                    <span className="text-xs ml-0.5">
-                      {formatarData(item.criadoEm)}
-                    </span>
-                    <Typography
+                historico.map((item, index) => {
+                  let nomeAnterior;
+                  let nomeNovo;
+
+                  if (item.tipo === "Status") {
+                  }
+                  nomeAnterior = statusOptions.find(
+                    (status) => status.value === item.nomeAnterior
+                  )?.nome;
+
+                  nomeNovo = statusOptions.find(
+                    (status) => status.value === item.nomeNovo
+                  )?.nome;
+
+                  return (
+                    <div
                       key={index}
-                      className="text-sm bg-[#22272b] rounded text-white px-2 py-1 break-word"
+                      className="flex flex-col text-gray-500 p-1"
                     >
-                      {item.tipo === "Descrição" ? (
-                        <>
-                          <strong className="font-bold">
-                            {item.nomeUsuario}
-                          </strong>{" "}
-                          {item.descricao}.
-                        </>
-                      ) : item.tipo === "COMENTARIO" ? (
-                        <>
-                          <strong className="font-bold">
-                            {item.nomeUsuario}
-                          </strong>{" "}
-                          comentou: {item.descricao}
-                        </>
-                      ) : (
-                        <strong className="flex gap-1 items-center">
-                          <strong className="font-bold">
-                            {item.nomeUsuario}
-                          </strong>{" "}
-                          {item.descricao}
-                          <strong className="font-bold">
-                            {item.nomeAnterior}
+                      <span className="text-xs ml-0.5">
+                        {formatarData(item.criadoEm)}
+                      </span>
+                      <Typography className="text-sm bg-[#22272b] rounded text-white px-2 py-1 break-word">
+                        {item.tipo === "Descrição" ? (
+                          <>
+                            <strong className="font-bold">
+                              {item.nomeUsuario}
+                            </strong>{" "}
+                            {item.descricao}.
+                          </>
+                        ) : item.tipo === "COMENTARIO" ? (
+                          <>
+                            <strong className="font-bold">
+                              {item.nomeUsuario}
+                            </strong>{" "}
+                            comentou: {item.descricao}
+                          </>
+                        ) : item.tipo === "Status" ? (
+                          <strong className="flex gap-1 items-center">
+                            <strong className="font-bold">
+                              {item.nomeUsuario}
+                            </strong>{" "}
+                            {item.descricao}
+                            <strong className="font-bold">
+                              {nomeAnterior}
+                            </strong>
+                            <strong>
+                              <IoIosArrowRoundForward size={20} />
+                            </strong>
+                            <strong className="font-bold">{nomeNovo}.</strong>
                           </strong>
-                          <strong>
-                            <IoIosArrowRoundForward size={20} />
+                        ) : (
+                          <strong className="flex gap-1 items-center">
+                            <strong className="font-bold">
+                              {item.nomeUsuario}
+                            </strong>{" "}
+                            {item.descricao}
+                            <strong className="font-bold">
+                              {item.nomeAnterior}
+                            </strong>
+                            <strong>
+                              <IoIosArrowRoundForward size={20} />
+                            </strong>
+                            <strong className="font-bold">
+                              {item.nomeNovo}.
+                            </strong>
                           </strong>
-                          <strong className="font-bold">
-                            {item.nomeNovo}.
-                          </strong>
-                        </strong>
-                      )}
-                    </Typography>
-                  </div>
-                ))
+                        )}
+                      </Typography>
+                    </div>
+                  );
+                })
               ) : (
                 <span className="text-gray-500">
-                  Nenhum historico para exibir
+                  Nenhum histórico para exibir.
                 </span>
               )}
             </div>
@@ -571,7 +590,10 @@ export default function ModalChamado(props: propsModalChamado) {
               >
                 <BsBoxArrowRight size={20} />
               </button>
-              <button className="bg-gradient-to-r from-light-green-400 to-green-600 text-black font-semibold py-2 px-4 rounded hover:bg-gradient-to-r hover:from-green-500 hover:to-green-700 transition-all duration-300 ease-in-out">
+              <button
+                onClick={acaoFinalizarChamado}
+                className="bg-gradient-to-r from-light-green-400 to-green-600 text-black font-semibold py-2 px-4 rounded hover:bg-gradient-to-r hover:from-green-500 hover:to-green-700 transition-all duration-300 ease-in-out"
+              >
                 <IoMdDoneAll size={20} />
               </button>
             </div>
@@ -605,11 +627,9 @@ export default function ModalChamado(props: propsModalChamado) {
 
             <div className="flex flex-col gap-4">
               <SelectStatus
-                statusList={listaDeStatus}
-                atualizaLista={AtualizaListaStatus}
                 setorId={props.idSetor}
-                setarIdStatus={setIdStatus}
-                valorInicial={statusChamado}
+                setarStatus={setStatus}
+                valorInicial={props.chamado.status}
               />
 
               <SelectPrioridades
@@ -640,13 +660,24 @@ export default function ModalChamado(props: propsModalChamado) {
                     setIsOpenModalTransferir(!isOpenModalTransferir)
                   }
                   listaQuadros={props.listaQuadros}
-
                   quadroDoChamado={props.listaQuadros.find(
                     (q) => q.id === props.chamado.quadroId
                   )}
                   idChamado={props.chamado.id}
                   fecharModalChamado={acaoBotaoCancelar}
                   atualizaChamados={props.atualizaChamadosQuadro}
+                />
+              )}
+
+              {isOpenModalFinalizar && (
+                <ModalFinalizar
+                  isOpen={isOpenModalFinalizar}
+                  setIsOpen={() =>
+                    setIsOpenModalFinalizar(!isOpenModalFinalizar)
+                  }
+                  idChamado={props.chamado.id}
+                  atualizaChamados={props.atualizaChamadosQuadro}
+                  fecharModalChamado={acaoBotaoCancelar}
                 />
               )}
             </div>

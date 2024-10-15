@@ -5,8 +5,11 @@ import {
   inserirMembro,
   removerMembro,
   buscaChamado,
-  transferirChamado
+  transferirChamado,
+  finalizarChamado
 } from "../../models/Chamados/chamados";
+
+import { StatusEnum } from "@prisma/client";
 
 export const listaChamadosPorQuadro = async (quadroId: number) => {
   try {
@@ -21,7 +24,6 @@ export const insereChamado = async (
   clienteId: number,
   titulo: string,
   descricao: string,
-  statusId: number,
   prioridadeId: number,
   membroId: number,
   quadroId: number,
@@ -32,7 +34,6 @@ export const insereChamado = async (
       clienteId,
       titulo,
       descricao,
-      statusId,
       prioridadeId,
       membroId,
       quadroId,
@@ -46,7 +47,7 @@ export const insereChamado = async (
 
 export const alteraChamado = async (
   idChamdo: number,
-  idNovoStatus?: number,
+  NovoStatus?: StatusEnum,
   idNovaPrioridade?: number,
   novaDescricao?: string,
   idNovoCliente?: number
@@ -54,7 +55,7 @@ export const alteraChamado = async (
   try {
     const chamado = await alterarChamado(
       idChamdo,
-      idNovoStatus,
+      NovoStatus,
       idNovaPrioridade,
       novaDescricao,
       idNovoCliente
@@ -99,5 +100,14 @@ export const transfereChamado = async (idChamado: number, idQuadro: number) => {
     return quadro;
   } catch (error) {
     console.error("Erro ao transferir chamado em Controller", error);
+  }
+}
+
+export const finalizaChamado = async (idChamado: number) => {
+  try {
+    const chamadoFinalizado = await finalizarChamado(idChamado);
+    return chamadoFinalizado;
+  } catch (error) {
+    console.error("Erro ao finalizar chamado em Controller", error);
   }
 }
