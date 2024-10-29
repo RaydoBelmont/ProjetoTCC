@@ -10,6 +10,7 @@ import { Quadro } from "../../page";
 import SelectQuadro from "./selectQuadro";
 import { transferirChamado } from "@/app/lib/ChamadosFunctions/libAlterarChamado";
 import { IoClose } from "react-icons/io5";
+import { inserirHistorico } from "@/app/lib/ChamadosFunctions/Historico/libInserirHistorico";
 
 type propsModalTransferir = {
   isOpen: boolean;
@@ -19,6 +20,7 @@ type propsModalTransferir = {
   idChamado: number;
   fecharModalChamado: () => void;
   atualizaChamados: () => void;
+  idMembro: number
 };
 
 export default function ModalTtransferir(props: propsModalTransferir) {
@@ -42,9 +44,12 @@ export default function ModalTtransferir(props: propsModalTransferir) {
           quadroSelecionado.id
         );
         if (transferido === true) {
-          acaoFecharModal();
-          props.atualizaChamados();
-          props.fecharModalChamado();
+          const historicoTransferido = await inserirHistorico(props.idChamado, props.idMembro, "TRANSFERIDO", "transferiu o chamado de quadro", props.quadroDoChamado.nome, quadroSelecionado.nome)
+          if(historicoTransferido){
+            acaoFecharModal();
+            props.atualizaChamados();
+            props.fecharModalChamado();
+          }
         } else {
           alert("Ocorreu algum erro ao tentar transferir o chamado!");
           return;

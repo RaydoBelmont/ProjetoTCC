@@ -83,10 +83,11 @@ export const transferirChamado = async (
 
 export const finalizarChamado = async (
   idChamado: number, 
-  finalizarChamado: boolean
+
+  solucao: string
 ) => {
   const encryptedData = CryptoJS.AES.encrypt(
-    JSON.stringify({ idChamado, finalizarChamado }),
+    JSON.stringify({ idChamado,solucao}),
     secretKey
   ).toString();
 
@@ -112,7 +113,113 @@ export const finalizarChamado = async (
       return false;
     }
   } catch (error) {
-    console.error("Erro ao inserir chamado:", error);
+    console.error("Erro ao finalizar chamado:", error);
+    return false;
+  }
+};
+
+export const reabrirChamado = async (
+  idChamado: number, 
+  reabrir: boolean
+) => {
+  const encryptedData = CryptoJS.AES.encrypt(
+    JSON.stringify({ idChamado,reabrir}),
+    secretKey
+  ).toString();
+
+  try {
+    const response = await fetch("/api/workspace/setor/chamados", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ data: encryptedData }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data === true) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      console.error("Erro na resposta da API:", data.error);
+      return false;
+    }
+  } catch (error) {
+    console.error("Erro ao reabrir chamado:", error);
+    return false;
+  }
+};
+
+export const arquivarChamado = async (
+  idChamado: number, 
+) => {
+  const encryptedData = CryptoJS.AES.encrypt(
+    JSON.stringify({ idChamado,arquivaDesarquiva: "ARQUIVAR"}),
+    secretKey
+  ).toString();
+
+  try {
+    const response = await fetch("/api/workspace/setor/chamados", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ data: encryptedData }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data === true) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      console.error("Erro na resposta da API:", data.error);
+      return false;
+    }
+  } catch (error) {
+    console.error("Erro ao arquivar chamado:", error);
+    return false;
+  }
+};
+
+export const desarquivarChamado = async (
+  idChamado: number, 
+) => {
+  const encryptedData = CryptoJS.AES.encrypt(
+    JSON.stringify({ idChamado,arquivaDesarquiva: "DESARQUIVAR"}),
+    secretKey
+  ).toString();
+
+  try {
+    const response = await fetch("/api/workspace/setor/chamados", {
+      method: "PATCH",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ data: encryptedData }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      if (data === true) {
+        return true;
+      } else {
+        return false;
+      }
+    } else {
+      console.error("Erro na resposta da API:", data.error);
+      return false;
+    }
+  } catch (error) {
+    console.error("Erro ao desarquivar chamado:", error);
     return false;
   }
 };

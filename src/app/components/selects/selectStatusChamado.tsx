@@ -4,13 +4,14 @@ import { useClickAway } from "react-use";
 interface Status {
   id: number;
   nome: string;
-  value: StatusEnum
+  value: StatusEnum;
 }
 
 interface SelectStatusProps {
   setorId: number;
   setarStatus: (status: string) => void;
   valorInicial?: string;
+  isDisabled?: boolean;
 }
 
 export enum StatusEnum {
@@ -34,10 +35,9 @@ export const statusOptions = [
 const SelectStatus: React.FC<SelectStatusProps> = ({
   setarStatus,
   valorInicial,
+  isDisabled = false, // Propriedade isDisabled com valor padrão
 }) => {
-  const [statusSelecionado, setStatusSelecionado] = useState<Status | null>(
-    null
-  );
+  const [statusSelecionado, setStatusSelecionado] = useState<Status | null>(null);
   const [isOpen, setIsOpen] = useState(false);
 
   const statusList = statusOptions;
@@ -53,52 +53,62 @@ const SelectStatus: React.FC<SelectStatusProps> = ({
   });
 
   const acaoSelecionarStatus = (status: Status) => {
-    setarStatus(status.value);
-    setStatusSelecionado(status);
-    setIsOpen(false);
+    if (!isDisabled) {
+      setarStatus(status.value);
+      setStatusSelecionado(status);
+      setIsOpen(false);
+    }
   };
 
   useEffect(() => {
     if (valorInicial) {
-      const statusInicial = statusOptions.find(s => s.value === valorInicial)
+      const statusInicial = statusOptions.find((s) => s.value === valorInicial);
       setStatusSelecionado(statusInicial);
     }
   }, [valorInicial]);
+
   return (
     <div className="relative w-full">
       <span className="text-white">Status</span>
       <button
         ref={buttonRef}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white text-start"
+        onClick={() => !isDisabled && setIsOpen((prev) => !prev)}
+        className={`w-full p-2 border border-gray-300 rounded focus:outline-none text-white text-start ${
+          isDisabled
+            ? "cursor-not-allowed"
+            : "focus:ring-2 focus:ring-indigo-500"
+        }`}
+        disabled={isDisabled} // Desativa o botão quando isDisabled é verdadeiro
       >
         {statusSelecionado ? statusSelecionado.nome : "Selecione um status"}
       </button>
 
-      {isOpen && (
+      {isOpen && !isDisabled && (
         <div
           ref={popoverRef}
           className="absolute z-10 w-full bg-gray-200 border border-gray-300 rounded mt-1 shadow-lg"
         >
           <ul className="max-h-60 overflow-auto">
             {statusList.length > 0 ? (
-              statusList.map((status) => (
-                <li
-                  key={status.id}
-                  className="flex justify-between items-center p-2 hover:bg-gray-300"
-                >
-                  {
-                    <div className="flex justify-between items-center w-full">
-                      <button
-                        onClick={() => acaoSelecionarStatus(status)}
-                        className="text-black select-none w-full text-start"
-                      >
-                        {status.nome}
-                      </button>
-                    </div>
-                  }
-                </li>
-              ))
+              statusList.map((status) =>
+                status.nome !== "Concluido" && status.nome !== "Cancelado" ? (
+                  <li
+                    key={status.id}
+                    className="flex justify-between items-center p-2 hover:bg-gray-300"
+                  >
+                    {
+                      <div className="flex justify-between items-center w-full">
+                        <button
+                          onClick={() => acaoSelecionarStatus(status)}
+                          className="text-black select-none w-full text-start"
+                        >
+                          {status.nome}
+                        </button>
+                      </div>
+                    }
+                  </li>
+                ) : null
+              )
             ) : (
               <li className="p-2 text-center text-gray-500">
                 Nenhum status encontrado

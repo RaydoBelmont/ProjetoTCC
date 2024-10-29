@@ -30,6 +30,9 @@ const config: Config = withMT({
       fontFamily: {
         roboto: ['Roboto', 'sans-serif'],
       },
+      screens: {
+        'max-lg': {'max': '1550px'}, // Definindo um tamanho de breakpoint
+      },
     },
   },
   plugins: [],

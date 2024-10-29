@@ -42,46 +42,33 @@ const Workspace: React.FC = () => {
     setSwitchPagina(numeroPagina);
   };
 
-  // Função para verificar a sessão e o usuário na workspace
-  const verificacaoDeUsuario = async (idWorkspace: number) => {
-    try {
-      const verificado = await verificaUsuarioComWorkspace(
-        String(session.user.email),
-        idWorkspace
-      );
-      return verificado;
-    } catch (error) {
-      return false;
-    }
-  };
 
   useEffect(() => {
-    if (status === "loading") return; // Aguarda o carregamento da sessão
-
+    if (status === "loading") return;
+  
     if (session && session?.user) {
       if (idWorkspace) {
-        try {
-          const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
-          const bytes = CryptoJS.AES.decrypt(
-            decodeURIComponent(String(idWorkspace)),
-            secretKey
-          );
-          const decryptedId = Number(
-            JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
-          );
-
-          // Verifica primeiro o usuário com a workspace antes de prosseguir
-          const fetchVerificacao = async () => {
-            const verificado = await verificacaoDeUsuario(decryptedId);
-
+        const fetchData = async () => {
+          try {
+            const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
+            const bytes = CryptoJS.AES.decrypt(
+              decodeURIComponent(String(idWorkspace)),
+              secretKey
+            );
+            const decryptedId = Number(JSON.parse(bytes.toString(CryptoJS.enc.Utf8)));
+  
+            const verificado = await verificaUsuarioComWorkspace(
+              String(session.user.email),
+              decryptedId
+            );
+  
             if (!verificado) {
               router.push("/");
-              return; // Interrompe a execução caso o usuário não seja autorizado
+              return;
             }
-
-            // Se verificado, define o ID da workspace e carrega os dados adicionais
+  
             setWorkspaceId(decryptedId);
-
+  
             await Promise.all([
               buscaESetaSetores(decryptedId),
               buscaEsetaMembros(decryptedId),
@@ -89,19 +76,20 @@ const Workspace: React.FC = () => {
               buscaIdUser(),
               buscarNomeDaWorkspace(decryptedId),
             ]);
-
-            setIsLoading(true); // Indica que os dados foram carregados com sucesso
-          };
-
-          fetchVerificacao();
-        } catch (error) {
-          console.error("Erro ao descriptografar o ID da workspace:", error);
-        }
+  
+            setIsLoading(true);
+          } catch (error) {
+            console.error("Erro ao descriptografar o ID da workspace:", error);
+          }
+        };
+  
+        fetchData();
       } else {
         router.push("/");
       }
     }
-  }, [session]);
+  }, [session, status, idWorkspace]);
+  
 
   const buscaESetaSetores = async (idWorkspace: number) => {
     try {

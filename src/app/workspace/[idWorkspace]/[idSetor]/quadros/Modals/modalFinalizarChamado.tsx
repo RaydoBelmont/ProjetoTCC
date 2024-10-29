@@ -8,16 +8,18 @@ import {
   Alert,
 } from "../../../../../lib/material-tailwindcss/material-tailwindcss";
 import { finalizarChamado } from "@/app/lib/ChamadosFunctions/libAlterarChamado";
+import { inserirHistorico } from "@/app/lib/ChamadosFunctions/Historico/libInserirHistorico";
 
-type propsModalTransferir = {
+type propsModalFinalizar = {
   isOpen: boolean;
   setIsOpen: () => void;
   idChamado: number;
   fecharModalChamado: () => void;
   atualizaChamados: () => void;
+  idMembro: number
 };
 
-export default function ModalFinalizar(props: propsModalTransferir) {
+export default function ModalFinalizar(props: propsModalFinalizar) {
   const [solucao, setSolucao] = useState<string>();
 
   const acaoFecharModal = () => {
@@ -28,18 +30,24 @@ export default function ModalFinalizar(props: propsModalTransferir) {
     e.preventDefault();
 
     try {
-      const chamadoFinalizado = await finalizarChamado(props.idChamado, true);
+      const chamadoFinalizado = await finalizarChamado(
+        props.idChamado,
+        solucao
+      );
       if (chamadoFinalizado) {
-        props.atualizaChamados();
-        props.fecharModalChamado();
-        acaoFecharModal();
+        const historicoFinalizado = await inserirHistorico(props.idChamado, props.idMembro, "FINALIZADO", "finalizou o chamado", null, null)
+        if(historicoFinalizado){
+          props.atualizaChamados();
+          props.fecharModalChamado();
+          acaoFecharModal();
+        }
       }
     } catch (error) {}
   };
 
   return (
     <Dialog
-      size="xs"
+      size="sm"
       open={props.isOpen}
       handler={props.setIsOpen}
       className="bg-transparent shadow-none"
@@ -49,14 +57,15 @@ export default function ModalFinalizar(props: propsModalTransferir) {
           <Typography variant="h5" color="white" className="text-center mb-4">
             Finalizar chamado
           </Typography>
-          <Alert color="red">
+          <Alert color="green">
             Antes de finalizar o chamado, por favor informe a solução.
           </Alert>
-          <form onSubmit={acaoFecharModal}>
+          <form onSubmit={acaoBotaoConfirmar} className="mt-4">
+            <span className="text-white ml-1 font-bold">Solução:</span>
             <textarea
               value={solucao ? solucao : ""}
               onChange={(e) => setSolucao(e.target.value)}
-              className="bg-[#2C2F35] text-white rounded border-white border p-2 min-h-36 resize-none mt-4"
+              className="bg-[#2C2F35] text-white rounded border-white border p-2 min-h-36 resize-none"
               required
             ></textarea>
             <div className="flex gap-2 mt-4">

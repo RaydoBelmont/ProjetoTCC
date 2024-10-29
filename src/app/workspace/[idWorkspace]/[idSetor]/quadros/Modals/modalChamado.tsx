@@ -1,16 +1,18 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import {
-  Button,
   Dialog,
   Card,
   CardBody,
   Typography,
-  Input,
+  Alert,
 } from "../../../../../lib/material-tailwindcss/material-tailwindcss";
 import { IoClose } from "react-icons/io5";
 import { IoMdAdd, IoMdDoneAll } from "react-icons/io";
 import { IoIosArrowRoundForward } from "react-icons/io";
+import { FaInfoCircle } from "react-icons/fa";
+import { FaRegEnvelopeOpen } from "react-icons/fa6";
+import { RiArrowGoBackFill  } from "react-icons/ri";
 import { Chamado, Quadro } from "../../page";
 import { buscarClientes } from "@/app/lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
 import { Cliente, Prioridade } from "../Modals/modalCadChamado";
@@ -30,6 +32,7 @@ import { BsBoxArrowRight } from "react-icons/bs";
 import ModalTtransferir from "./modalTransferir";
 import { statusOptions } from "@/app/components/selects/selectStatusChamado";
 import ModalFinalizar from "./modalFinalizarChamado";
+import ModalReabrir from "./modalReabrirChamado";
 
 type propsModalChamado = {
   isOpen: boolean;
@@ -67,6 +70,7 @@ export default function ModalChamado(props: propsModalChamado) {
   const [isOpenModalAddMembro, setIsOpenModalAddMembro] = useState(false);
   const [isOpenModalTransferir, setIsOpenModalTransferir] = useState(false);
   const [isOpenModalFinalizar, setIsOpenModalFinalizar] = useState(false);
+  const [isOpenModalReabrir, setIsOpenModalReabrir] = useState(false);
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [cliente, setCliente] = useState<Cliente | null>(null);
@@ -96,6 +100,10 @@ export default function ModalChamado(props: propsModalChamado) {
 
   const acaoFinalizarChamado = async () => {
     setIsOpenModalFinalizar(!isOpenModalFinalizar);
+  };
+
+  const acaoReabrirChamado = async () => {
+    setIsOpenModalReabrir(!isOpenModalReabrir);
   };
 
   const handleClienteChange = (selectedOption: Cliente | null) => {
@@ -189,6 +197,11 @@ export default function ModalChamado(props: propsModalChamado) {
   };
 
   const salvarAlteracoes = async () => {
+    if (!cliente) {
+      alert("Selecione um cliente para continuar.");
+      return;
+    }
+
     const atualizacoes: {
       novoStatus?: string;
       idNovaPrioridade?: number;
@@ -439,12 +452,15 @@ export default function ModalChamado(props: propsModalChamado) {
                 #{props.chamado.numeroSequencial}
               </Typography>
             </div>
-            <SelectClientes
-              options={clienteOptions}
-              value={cliente}
-              onChange={handleClienteChange}
-              placeholder="Selecionar cliente..."
-            />
+            <div>
+              <SelectClientes
+                options={clienteOptions}
+                value={cliente}
+                onChange={handleClienteChange}
+                placeholder="Selecionar cliente..."
+                isDisabled={props.chamado.solucao ? true : false}
+              />
+            </div>
             <Typography
               variant="paragraph"
               color="white"
@@ -455,30 +471,40 @@ export default function ModalChamado(props: propsModalChamado) {
             <textarea
               value={descricao ? descricao : ""}
               onChange={(e) => setDescricao(e.target.value)}
-              className="bg-[#2C2F35] text-white rounded border-white border p-2 min-h-72 resize-none"
+              className={`bg-[#2C2F35] text-white rounded border-white border p-2 min-h-72 resize-none`}
+              disabled={props.chamado.solucao ? true : false}
             ></textarea>
+
+            {props.chamado.concluidoEm && props.chamado.solucao ? (
+              <div>
+                <h4 className="text-white">Solução:</h4>
+                <Alert color="light-green" className="text-black">
+                  {props.chamado.solucao}
+                </Alert>
+              </div>
+            ) : null}
+
             {/* Campo para adicionar comentário */}
-            <div className="relative flex w-full ">
-              <Input
-                label="Adicionar comentário"
-                value={comentario}
-                onChange={onChangeComentario}
-                className="pr-20 w-full"
-                containerProps={{
-                  className: "min-w-0 ",
-                }}
-                crossOrigin={undefined}
-                color="white"
-              />
-              <Button
-                size="sm"
-                color={comentario ? "gray" : "blue-gray"}
-                disabled={!comentario}
-                className="!absolute right-1 top-1 rounded"
-                onClick={inserirComentario}
-              >
-                Enviar
-              </Button>
+            <div className="relative flex flex-col w-full">
+              <span className="text-white ml-1 mb-1">Faça um Comentario:</span>
+              <div className="flex w-full gap-2">
+                <input
+                  type="text"
+                  value={comentario}
+                  onChange={onChangeComentario}
+                  className="bg-transparent  text-white focus:outline-none"
+                  disabled={props.chamado.solucao ? true : false}
+                ></input>
+                <button
+                  disabled={!comentario}
+                  className={`rounded w-20 h-11 p-2 transition-all bg-gray-700 text-white ${
+                    comentario ? "hover:bg-gray-600" : "opacity-50"
+                  }`}
+                  onClick={inserirComentario}
+                >
+                  Enviar
+                </button>
+              </div>
             </div>
 
             {/* Histórico do chamado */}
@@ -516,6 +542,12 @@ export default function ModalChamado(props: propsModalChamado) {
                               {item.nomeUsuario}
                             </strong>{" "}
                             {item.descricao}.
+                            <strong className="relative inline-block group ml-2">
+                              <FaInfoCircle
+                                className="text-blue-500"
+                                title={String(item.valorAnterior)}
+                              />
+                            </strong>
                           </>
                         ) : item.tipo === "COMENTARIO" ? (
                           <>
@@ -537,6 +569,28 @@ export default function ModalChamado(props: propsModalChamado) {
                               <IoIosArrowRoundForward size={20} />
                             </strong>
                             <strong className="font-bold">{nomeNovo}.</strong>
+                          </strong>
+                        ) : item.tipo === "FINALIZADO" ||
+                          item.tipo === "REABERTO" ? (
+                          <strong className="flex gap-1 items-center">
+                            <strong className="font-bold">
+                              {item.nomeUsuario}
+                            </strong>{" "}
+                            {item.descricao}.
+                          </strong>
+                        ) : item.tipo === "TRANSFERIDO" ? (
+                          <strong className="flex gap-1 items-center">
+                            <strong className="font-bold">
+                              {item.nomeUsuario}
+                            </strong>{" "}
+                            {item.descricao}
+                            <strong className="font-bold">
+                              {item.valorAnterior}
+                            </strong>
+                            <strong>
+                              <IoIosArrowRoundForward size={20} />
+                            </strong>
+                            <strong className="font-bold">{item.valorNovo}.</strong>
                           </strong>
                         ) : (
                           <strong className="flex gap-1 items-center">
@@ -570,41 +624,84 @@ export default function ModalChamado(props: propsModalChamado) {
           <div className="border  border-gray-600 rounded"></div>
 
           {/* Lado direito - Membros e botão de adicionar membros */}
-          <div className="bg-[#394152] p-4 rounded-r w-1/4 ">
-            <div className="flex justify-end text-gray-500 text-2xl flex-col items-end">
+          <div className="bg-[#394152] p-4 rounded-r w-[25%] max-lg:w-[30%]">
+
+            <div className="flex justify-end text-gray-500 flex-col items-end">
               <button onClick={acaoBotaoCancelar}>
-                <IoClose />
+                <IoClose size={25} />
               </button>
             </div>
 
-            <div className="flex flex-col gap-8 justify-center mt-8 sm:flex-row">
+            <div className="flex flex-col gap-4 justify-center mt-8 ">
               <button
-                className="bg-gradient-to-r from-light-blue-400 to-blue-600 text-black font-semibold py-2 px-4 rounded hover:bg-gradient-to-r hover:from-light-blue-500 hover:to-light-blue-700 transition-all duration-300 ease-in-out"
+                title="Salvar"
+                className={`
+                  ${
+                    props.chamado.solucao
+                      ? "opacity-50 "
+                      : "hover:bg-gradient-to-r hover:from-light-blue-500 hover:to-light-blue-700"
+                  }
+                  flex bg-gradient-to-r from-light-blue-400 to-blue-600 items-center justify-start gap-4 text-sm  text-black font-semibold py-2 px-4 rounded  transition-all duration-300 ease-in-out`}
                 onClick={salvarAlteracoes}
+                disabled={!!props.chamado.solucao}
               >
                 <FaRegSave size={20} />
+                Salvar
               </button>
+
               <button
-                className="bg-gradient-to-r from-yellow-400 to-yellow-600 text-black font-semibold py-2 px-4 rounded hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-700 transition-all duration-300 ease-in-out"
+                title="Transferir"
+                className={`
+                  ${
+                    props.chamado.solucao
+                      ? "opacity-50 "
+                      : "hover:bg-gradient-to-r hover:from-yellow-500 hover:to-yellow-700"
+                  }
+                  flex items-center justify-start gap-4 bg-gradient-to-r from-yellow-400 to-yellow-600 text-black text-sm  font-semibold py-2 px-4 rounded  transition-all duration-300 ease-in-out`}
                 onClick={() => setIsOpenModalTransferir(true)}
+                disabled={!!props.chamado.solucao}
               >
                 <BsBoxArrowRight size={20} />
+                Transferir
               </button>
-              <button
-                onClick={acaoFinalizarChamado}
-                className="bg-gradient-to-r from-light-green-400 to-green-600 text-black font-semibold py-2 px-4 rounded hover:bg-gradient-to-r hover:from-green-500 hover:to-green-700 transition-all duration-300 ease-in-out"
-              >
-                <IoMdDoneAll size={20} />
-              </button>
+
+              {props.chamado.solucao ? (
+                <button
+                  title="Reabrir"
+                  onClick={acaoReabrirChamado}
+                  className="flex items-center justify-start gap-4 bg-white text-black text-sm  font-semibold py-2 px-4 rounded hover:bg-gray-200 transition-all duration-300 ease-in-out"
+                >
+                  <RiArrowGoBackFill  size={20} />
+                  Reabrir
+                </button>
+              ) : (
+                <button
+                  title="Concluir"
+                  onClick={acaoFinalizarChamado}
+                  className="flex items-center justify-start gap-4 bg-gradient-to-r from-green-400 to-green-600 text-sm  text-black font-semibold py-2 px-4 rounded hover:bg-gradient-to-r hover:from-green-500 hover:to-green-700 transition-all duration-300 ease-in-out"
+                >
+                  <IoMdDoneAll size={20} />
+                  Concluir
+                </button>
+              )}
+
+              
             </div>
 
-            <div className="flex justify-between items-center pt-8">
+            <div className="flex justify-between items-center pt-8 ">
               <Typography variant="h5" color="white">
                 Membros
               </Typography>
               <button
-                className=" rounded-full flex items-center justify-center text-gray-600 hover:bg-green-600 hover:text-white hover:transition-all hover:delay-50"
+                className={`
+                  ${
+                    props.chamado.solucao
+                      ? "cursor-not-allowed"
+                      : "hover:bg-green-600 hover:text-white"
+                  }
+                  rounded-full flex items-center justify-center text-gray-600 hover:transition-all hover:delay-50`}
                 onClick={acaoAbrirModalMembros}
+                disabled={props.chamado.solucao ? true : false}
               >
                 <IoMdAdd size={25} className="" />
               </button>
@@ -616,7 +713,14 @@ export default function ModalChamado(props: propsModalChamado) {
                     {member.user.nome}{" "}
                     <button
                       onClick={() => removerMembroDoChamado(member.user.id)}
-                      className="ml-1 hover:bg-gray-600 rounded p-0.5"
+                      className={`
+                        ${
+                          props.chamado.solucao
+                            ? "cursor-not-allowed"
+                            : "hover:bg-gray-600"
+                        }
+                        ml-1 rounded p-0.5`}
+                      disabled={props.chamado.solucao ? true : false}
                     >
                       <IoClose />
                     </button>
@@ -630,6 +734,7 @@ export default function ModalChamado(props: propsModalChamado) {
                 setorId={props.idSetor}
                 setarStatus={setStatus}
                 valorInicial={props.chamado.status}
+                isDisabled={props.chamado.solucao ? true : false}
               />
 
               <SelectPrioridades
@@ -638,6 +743,7 @@ export default function ModalChamado(props: propsModalChamado) {
                 setorId={props.idSetor}
                 setarIdPrioridade={setIdPrioridade}
                 valorInicial={prioridadeChamado}
+                isDisabled={props.chamado.solucao ? true : false}
               />
 
               {isOpenModalAddMembro && (
@@ -666,6 +772,7 @@ export default function ModalChamado(props: propsModalChamado) {
                   idChamado={props.chamado.id}
                   fecharModalChamado={acaoBotaoCancelar}
                   atualizaChamados={props.atualizaChamadosQuadro}
+                  idMembro={props.idMembro}
                 />
               )}
 
@@ -678,6 +785,18 @@ export default function ModalChamado(props: propsModalChamado) {
                   idChamado={props.chamado.id}
                   atualizaChamados={props.atualizaChamadosQuadro}
                   fecharModalChamado={acaoBotaoCancelar}
+                  idMembro={props.idMembro}
+                />
+              )}
+
+              {isOpenModalReabrir && (
+                <ModalReabrir
+                  isOpen={isOpenModalReabrir}
+                  setIsOpen={() => setIsOpenModalReabrir(!isOpenModalReabrir)}
+                  idChamado={props.chamado.id}
+                  atualizaChamados={props.atualizaChamadosQuadro}
+                  fecharModalChamado={acaoBotaoCancelar}
+                  idMembro={props.idMembro}
                 />
               )}
             </div>

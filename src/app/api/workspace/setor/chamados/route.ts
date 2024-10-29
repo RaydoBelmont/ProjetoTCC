@@ -8,7 +8,10 @@ import {
   removeMembro,
   buscarChamado,
   transfereChamado,
-  finalizaChamado
+  finalizaChamado,
+  reabreChamado,
+  arquivaChamado,
+  desarquivaChamado
 } from "../../../../../../controllers/Chamados/chamadosController";
 import { StatusEnum } from '@prisma/client'; // importe seu enum de status
 
@@ -147,7 +150,10 @@ export async function PATCH(request: NextRequest) {
   const idNovoMembro = Number(decryptedData.idNovoMembro);
   const idMembroRemover = Number(decryptedData.idMembroRemover);
   const idQuadroTransferir = Number(decryptedData.idQuadroTransferir);
-  const finalizarChamado = decryptedData.finalizar;
+  const solucao = decryptedData.solucao;
+  const reabrir = Boolean(decryptedData.reabrir);
+  const arquivaDesarquiva = String(decryptedData.arquivaDesarquiva)
+  
 
   if (!idChamado) {
     return NextResponse.json(
@@ -211,9 +217,9 @@ export async function PATCH(request: NextRequest) {
         { status: 500 }
       );
     }
-  }else if(finalizarChamado){
+  }else if(solucao){
     try {
-      const chamadoFinalizado = await finalizaChamado(idChamado)
+      const chamadoFinalizado = await finalizaChamado(idChamado, solucao)
       if(chamadoFinalizado === true){
         return NextResponse.json(true, { status: 200 });
       }else{
@@ -222,6 +228,44 @@ export async function PATCH(request: NextRequest) {
     } catch (error) {
       return NextResponse.json(
         { error: "Ocorreu um erro ao finalizar chamado em API." },
+        { status: 500 }
+      );
+    }
+  }else if (reabrir){
+    try {
+      const chamadoReaberto = await reabreChamado(idChamado);
+      if(chamadoReaberto === true){
+        return NextResponse.json(true, { status: 200 });
+      }else{
+        return NextResponse.json(false, { status: 200 });
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Ocorreu um erro ao reabrir chamado em API." },
+        { status: 500 }
+      );
+    }
+  }else if(arquivaDesarquiva === "ARQUIVAR"){
+    try {
+      const chamadoReaberto = await arquivaChamado(idChamado);
+      if(chamadoReaberto){
+        return NextResponse.json(chamadoReaberto, { status: 200 });
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Ocorreu um erro ao arquivar chamado em API." },
+        { status: 500 }
+      );
+    }
+  }else if(arquivaDesarquiva === "DESARQUIVAR"){
+    try {
+      const chamadoReaberto = await desarquivaChamado(idChamado);
+      if(chamadoReaberto){
+        return NextResponse.json(chamadoReaberto, { status: 200 });
+      }
+    } catch (error) {
+      return NextResponse.json(
+        { error: "Ocorreu um erro ao desarquivar chamado em API." },
         { status: 500 }
       );
     }

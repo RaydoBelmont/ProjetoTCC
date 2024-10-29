@@ -13,6 +13,7 @@ type CustomSelectProps = {
   placeholder?: string;
   value?: Option | null;
   onChange: (value: Option | null) => void;
+  isDisabled?: boolean;
 };
 
 const SelectClientes: React.FC<CustomSelectProps> = ({
@@ -20,6 +21,7 @@ const SelectClientes: React.FC<CustomSelectProps> = ({
   placeholder = "Select...",
   value,
   onChange,
+  isDisabled = false, // Adiciona a prop isDisabled
 }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [maxHeight, setMaxHeight] = useState<string | number>(0);
@@ -27,13 +29,14 @@ const SelectClientes: React.FC<CustomSelectProps> = ({
   const selectRef = useRef<HTMLDivElement>(null);
 
   const handleChange = (selectedOption: Option | null) => {
-    onChange(selectedOption);
-    setIsOpen(false);
-    setMaxHeight(0); // Reseta a altura quando uma opção é selecionada
+      onChange(selectedOption);
+      setIsOpen(false);
+      setMaxHeight(0); // Reseta a altura quando uma opção é selecionada
   };
 
   const handleClear = () => {
-    onChange(null);
+      onChange(null);
+
   };
 
   const handleClickOutside = (event: MouseEvent) => {
@@ -54,9 +57,11 @@ const SelectClientes: React.FC<CustomSelectProps> = ({
   }, []);
 
   const toggleDropdown = () => {
-    setIsOpen((prev) => !prev);
-    setMaxHeight((prev) => (prev === 0 ? "300px" : 0)); // Altera a altura máxima ao abrir/fechar
-    setSearchTerm(""); // Limpa a pesquisa ao abrir
+    if (!isDisabled) {
+      setIsOpen((prev) => !prev);
+      setMaxHeight((prev) => (prev === 0 ? "300px" : 0)); // Altera a altura máxima ao abrir/fechar
+      setSearchTerm(""); // Limpa a pesquisa ao abrir
+    }
   };
 
   // Filtra as opções com base no termo de pesquisa
@@ -70,28 +75,32 @@ const SelectClientes: React.FC<CustomSelectProps> = ({
     <div className="relative w-full" ref={selectRef}>
       <div
         onClick={toggleDropdown}
-        className="flex justify-between items-center bg-[#394152] text-white select-none px-4 py-2 rounded-md border border-gray-300 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className={`flex justify-between items-center select-none px-4 py-2 rounded-md border border-gray-300 cursor-pointer focus:outline-none bg-[#394152] text-white  ${
+          isDisabled
+            ? "cursor-not-allowed pointer-events-none"
+            : "cursor-pointer"
+        }`}
       >
         <span>{value ? `${value.nome} - ${value.cpfCnpj}` : placeholder}</span>
-        {isOpen ? (
+        {isOpen && !isDisabled ? (
           <FaChevronUp className="text-white" />
         ) : (
-          <FaChevronDown className="text-white" />
+          <FaChevronDown className={`${isDisabled ? "text-gray-500" : "text-white"}`} />
         )}
       </div>
-      {isOpen && (
+      {isOpen && !isDisabled && (
         <div
           className={`absolute flex flex-col z-10 w-full mt-1 bg-gray-200 rounded-md shadow-lg transition-all duration-200 overflow-y-auto select-none`}
           style={{ maxHeight }}
         >
           {/* Barra de pesquisa */}
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Pesquisar..."
-              className="w-full mt-2 focus:outline-none bg-gray-400 text-black placeholder-gray-600"
-            />
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Pesquisar..."
+            className="w-full mt-2 focus:outline-none bg-gray-400 text-black placeholder-gray-600"
+          />
           {/* Lista de opções filtradas */}
           {filteredOptions.map((option) => (
             <div
@@ -107,7 +116,10 @@ const SelectClientes: React.FC<CustomSelectProps> = ({
       {value && (
         <button
           onClick={handleClear}
-          className="absolute right-12 top-[21px] transform -translate-y-1/2 text-gray-500 hover:text-gray-300 focus:outline-none text-lg"
+          disabled={isDisabled} // Desativa o botão de limpar se estiver desativado
+          className={`absolute right-12 top-[21px] transform -translate-y-1/2 text-gray-500 focus:outline-none text-lg ${
+            isDisabled ? "cursor-not-allowed text-gray-400" : "hover:text-gray-300"
+          }`}
         >
           <IoMdClose />
         </button>

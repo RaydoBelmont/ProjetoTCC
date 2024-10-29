@@ -29,7 +29,9 @@ export default function SelectQuadro(props: propsSelect) {
   };
 
   useEffect(() => {
-    acaoSelecionarQuadro(null);
+    setQuadroSelecionado(null);
+    props.setarQuadro(null);
+    setIsOpen(false);
   }, []);
 
   return (

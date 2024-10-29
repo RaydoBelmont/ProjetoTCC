@@ -13,19 +13,27 @@ import {
   Chip,
 } from "../../../lib/material-tailwindcss/material-tailwindcss";
 import { FaTrashAlt, FaEdit } from "react-icons/fa";
+import { RiInboxArchiveLine } from "react-icons/ri";
+import { IoMdSearch } from "react-icons/io";
 import ModalCadQuadro from "./quadros/Modals/modalCadQuadro";
 import { useEffect, useState } from "react";
 import { buscarQuadros } from "@/app/lib/QuadrosFunctions/libBuscarQuadros";
 import { listaChamados } from "@/app/lib/ChamadosFunctions/libListarChamados";
 import { buscaSetor } from "@/app/lib/SetoresFunctions/listarSetoresIdWorkspaceIdUser";
 import CryptoJS from "crypto-js";
-import ModalCadChamado from "./quadros/Modals/modalCadChamado";
+import ModalCadChamado, {
+  Cliente,
+  Prioridade,
+} from "./quadros/Modals/modalCadChamado";
 import ModalChamado from "./quadros/Modals/modalChamado";
 import { useSession } from "next-auth/react";
 
 import { getMembroParaWorkspace } from "@/app/lib/WorkspaceFunctions/Membros/buscaMembroDaWorkspace";
 import { buscaIdUserPorEmail } from "@/app/lib/UserFunctions/buscaIDuser";
 import Loading from "../Loading";
+import { listaChamadosPorQuadro } from "../../../../../controllers/Chamados/chamadosController";
+import { buscarClientes } from "@/app/lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
+import { listaPrioridades } from "@/app/lib/PrioridadesFunctions/libListaPrioridades";
 
 type Membro = {
   id: number;
@@ -42,6 +50,9 @@ export type Chamado = {
   descricao: string;
   criadoEm: Date;
   atualizadoEm: Date;
+  concluidoEm: Date;
+  arquivado: Boolean;
+  solucao: string;
   status: string;
   prioridadeId: number;
   criadoPor: number;
@@ -105,6 +116,22 @@ const Setor: React.FC = () => {
   const [tipoModalCadQuadro, setTipoModalCadQuadro] = useState<string>("");
   const [quadros, setQuadros] = useState<Quadro[]>([]);
   const [idQuadroEditar, setIdQuadroEditar] = useState<number>();
+  const [mostrarArquivados, setMostrarArquivados] = useState<{
+    [key: number]: boolean;
+  }>({});
+
+  //Filtro quadro
+  const filtroPesquisarChamado = ["Cliente", "Nº"];
+  const [isOpenFiltroChamados, setIsOpenFiltroChamados] = useState<{
+    [key: number]: boolean;
+  }>({});
+  const [opcaoSelecionadaFiltroChamados, setOpcaoSelecionadaFiltroChamados] =
+    useState<{
+      [key: number]: string;
+    }>({});
+  const [filtroTexto, setFiltroTexto] = useState<{
+    [key: number]: string;
+  }>({});
 
   //Chamado
   const [isOpenChamado, setIsOpenChamado] = useState<boolean>(false); //var pro dialog do chamado
@@ -117,6 +144,15 @@ const Setor: React.FC = () => {
   const [carregandoTodosChamados, setCarregandoTodosChamados] = useState(true);
   const [idQuadroNovoChamado, setIdQuadroNovoChamado] = useState<number>();
 
+  //States para os relatorios
+  const [listaClientes, setListaClientes] = useState<Cliente[]>();
+  const [listaDePrioridades, setListaDePrioridades] = useState<Prioridade[]>();
+
+  const getClientes = async (idWorkspace: number) => {
+    const listaClientes = await buscarClientes(idWorkspace);
+    setListaClientes(listaClientes);
+  };
+
   const getSetor = async (idSetor: number) => {
     try {
       const result = await buscaSetor(idSetor);
@@ -124,6 +160,20 @@ const Setor: React.FC = () => {
       return setor;
     } catch (error) {
       console.log("Erro ao tentar buscar setor.", error);
+    }
+  };
+
+  const getPrioridades = async (idSetor: number) => {
+    try {
+      const listaDePrioridades = await listaPrioridades(idSetor);
+      if (listaDePrioridades) {
+        setListaDePrioridades(listaDePrioridades);
+      }
+    } catch (error) {
+      console.log(
+        "Houve um erro ao tentar buscar a lista de prioridades",
+        error
+      );
     }
   };
 
@@ -192,6 +242,58 @@ const Setor: React.FC = () => {
       console.log("Erro ao tentar atualizar os quadros e chamados", error);
     } finally {
       setCarregandoTodosChamados(false); // Finaliza o carregamento
+    }
+  };
+
+  const toggleArquivados = (quadroId: number) => {
+    setMostrarArquivados((prev) => ({
+      ...prev,
+      [quadroId]: !prev[quadroId],
+    }));
+  };
+
+  const abrirFiltroOpcoesChamados = (quadroId: number) => {
+    setIsOpenFiltroChamados((prevState) => ({
+      ...prevState,
+      [quadroId]: !prevState[quadroId],
+    }));
+  };
+
+  const selecionarOpcaoFiltroChamados = (quadroId: number, opcao: string) => {
+    setOpcaoSelecionadaFiltroChamados((prevState) => ({
+      ...prevState,
+      [quadroId]: opcao,
+    }));
+    abrirFiltroOpcoesChamados(quadroId);
+  };
+
+  const setFiltroPesquisar = (quadroId: number, opcao: string) => {
+    setFiltroTexto((prevState) => ({
+      ...prevState,
+      [quadroId]: opcao,
+    }));
+  };
+
+  const filtrarChamados = (chamados: Chamado[], quadroId: number) => {
+    const textoFiltrado = filtroTexto[quadroId]?.toLowerCase() || "";
+
+    if (!textoFiltrado) return chamados;
+
+    const opcaoFiltro = opcaoSelecionadaFiltroChamados[quadroId];
+
+    switch (opcaoFiltro) {
+      case "Cliente":
+        return chamados.filter((chamado) =>
+          chamado.cliente.nome.toLowerCase().includes(textoFiltrado)
+        );
+      case "Nº":
+        return chamados.filter((chamado) =>
+          chamado.numeroSequencial.toString().includes(textoFiltrado)
+        );
+      default:
+        return chamados.filter((chamado) =>
+          chamado.cliente.nome.toLowerCase().includes(textoFiltrado)
+        );
     }
   };
 
@@ -271,6 +373,8 @@ const Setor: React.FC = () => {
               setDecryptedIdSetor(Number(decryptedSetorId));
               await getQuadrosEChamados(Number(decryptedSetorId));
               await getSetor(Number(decryptedSetorId));
+              await getClientes(Number(decryptedWorkspaceId));
+              await getPrioridades(Number(decryptedSetorId));
               setCarregandoPagina(false);
             }
           } catch (error) {
@@ -304,9 +408,13 @@ const Setor: React.FC = () => {
             setModalOpen={() => setIsOpenCadQuadro(!isOpenCadQuadro)}
             setTipoModal={() => setTipoModalCadQuadro("INSERIR")}
             tipoModal={tipoModalCadQuadro}
+            listaChamadosPorQuadro={chamadosPorQuadro}
+            listaQuadros={quadros}
+            clientes={listaClientes}
+            listaPrioridades={listaDePrioridades}
           />
-          <Typography variant="h3" className="pb-4">
-            {setor ? "Quadros de " + setor.nome : ""}
+          <Typography variant="h3" className="pb-8">
+            {setor ? "Quadros do " + setor.nome : ""}
           </Typography>
           <div className="flex flex-col w-full p-2 gap-y-4 justify-center items-start">
             <div className="flex flex-wrap p-4 gap-4 gap-y-8 items-start">
@@ -314,7 +422,7 @@ const Setor: React.FC = () => {
                 quadros.map((quadro) => (
                   <Card
                     key={quadro.id}
-                    className="w-[290px] h-[420px] bg-[#202938]"
+                    className="w-[350px] h-[440px] bg-[#202938]"
                   >
                     <CardHeader className="bg-[#07b6d5] relative flex justify-between items-center">
                       <Button variant="text" className="ml-2 p-1 rounded-lg ">
@@ -336,70 +444,235 @@ const Setor: React.FC = () => {
                       </Button>
                     </CardHeader>
                     <div className="flex flex-col h-full overflow-y-auto custom-scrollbar">
-                      <span
-                        className="text-gray-500 p-1 text-sm text-center truncate"
-                        title={quadro.responsavel.nome}
-                      >
-                        Responsavel: {quadro.responsavel.nome}
-                      </span>
-                      <CardBody className="flex flex-col space-y-2 pb-4 pt-4 ">
+                      <div className="flex justify-between items-center mt-1">
+                        <span
+                          className="text-gray-500 p-1 text-sm text-center truncate pr-2 pl-4"
+                          title={quadro.responsavel.nome}
+                        >
+                          Responsável: {quadro.responsavel.nome}
+                        </span>
+                        <button
+                          title="Arquivados"
+                          onClick={() => toggleArquivados(quadro.id)}
+                          className={`${
+                            mostrarArquivados[quadro.id]
+                              ? "bg-gray-700 text-white"
+                              : ""
+                          } rounded hover:bg-gray-700 hover:text-white p-1 mr-1`}
+                        >
+                          <RiInboxArchiveLine />
+                        </button>
+                      </div>
+
+                      {/* filtro pesquisar chamado */}
+                      <div className="flex items-center justify-start pl-3 pt-1 gap-1">
+                        <div className="flex items-center gap-2">
+                          <div className="relative">
+                            <div
+                              className="flex items-center bg-transparent rounded-full border border-gray-600 px-2 py-1 h-8 cursor-pointer text-sm w-20"
+                              onClick={() =>
+                                abrirFiltroOpcoesChamados(quadro.id)
+                              }
+                            >
+                              <span className="flex-1 text-gray-500">
+                                {opcaoSelecionadaFiltroChamados[quadro.id]
+                                  ? opcaoSelecionadaFiltroChamados[quadro.id]
+                                  : "Filtro"}
+                              </span>
+                              <IoMdSearch className="text-gray-500" />
+                            </div>
+                            {isOpenFiltroChamados[quadro.id] && (
+                              <div className="absolute left-0 mt-1 bg-[#394152] rounded-md shadow-lg z-10 w-40 max-h-40 overflow-y-auto custom-scrollbar">
+                                {filtroPesquisarChamado.map((option) => (
+                                  <div
+                                    key={option}
+                                    onClick={() =>
+                                      selecionarOpcaoFiltroChamados(
+                                        quadro.id,
+                                        option
+                                      )
+                                    }
+                                    className="px-4 py-2 text-sm text-gray-500 hover:bg-gray-600 hover:text-white cursor-pointer"
+                                  >
+                                    {option}
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                          <input
+                            className="bg-transparent rounded-full border border-gray-600 text-sm px-2 py-1 h-8 text-gray-500"
+                            placeholder="Buscar..."
+                            value={filtroTexto[quadro.id] ?? ""} // Use fallback if undefined
+                            onChange={(e) =>
+                              setFiltroPesquisar(quadro.id, e.target.value)
+                            }
+                          />
+                        </div>
+                      </div>
+
+                      <CardBody className="flex flex-col space-y-2 pb-4 pt-4">
                         {carregandoTodosChamados ? (
                           <Typography variant="small" className="text-gray-500">
                             Carregando chamados...
                           </Typography>
-                        ) : chamadosPorQuadro[quadro.id]?.length > 0 ? (
-                          chamadosPorQuadro[quadro.id].map((chamado) => (
+                        ) : mostrarArquivados[quadro.id] ? (
+                          // Mostrar chamados arquivados
+                          filtrarChamados(
+                            chamadosPorQuadro[quadro.id]?.filter(
+                              (chamado) => chamado.arquivado
+                            ),
+                            quadro.id
+                          )?.length > 0 ? (
+                            filtrarChamados(
+                              chamadosPorQuadro[quadro.id]?.filter(
+                                (chamado) => chamado.arquivado
+                              ),
+                              quadro.id
+                            ).map((chamado) => (
+                              <div
+                                key={chamado.numeroSequencial}
+                                className="pt-1"
+                              >
+                                <div className="flex justify-between">
+                                  <div className="flex gap-2">
+                                    <Chip
+                                      value={formatarData(chamado.criadoEm)}
+                                      className="text-[11px] py-1 px-2 mb-1 bg-blue-gray-600 text-white"
+                                    />
+                                    {/* Mostrar o status do chamado */}
+                                    {(() => {
+                                      switch (chamado.status) {
+                                        case "EM_ABERTO":
+                                          return (
+                                            <Chip
+                                              value="Em Aberto"
+                                              className="text-[11px] py-1 px-2 mb-1 bg-green-800 normal-case"
+                                            />
+                                          );
+                                        case "EM_ANALISE":
+                                          return (
+                                            <Chip
+                                              value="Em Análise"
+                                              className="text-[11px] py-1 px-2 mb-1 bg-yellow-900 normal-case"
+                                            />
+                                          );
+                                        case "EM_ANDAMENTO":
+                                          return (
+                                            <Chip
+                                              value="Em Andamento"
+                                              className="text-[11px] py-1 px-2 mb-1 bg-blue-600 normal-case"
+                                            />
+                                          );
+                                        case "CONCLUIDO":
+                                          return (
+                                            <Chip
+                                              value="Concluído"
+                                              className="text-[11px] py-1 px-2 mb-1 bg-green-500 normal-case"
+                                            />
+                                          );
+                                        case "CANCELADO":
+                                          return (
+                                            <Chip
+                                              value="Cancelado"
+                                              className="text-[11px] py-1 px-2 mb-1 bg-red-600 normal-case"
+                                            />
+                                          );
+                                        default:
+                                          return null;
+                                      }
+                                    })()}
+                                  </div>
+                                  <Chip
+                                    value={chamado.prioridade.nome}
+                                    className="text-[11px] py-1 px-2 mb-1 bg-blue-gray-600 text-white"
+                                  />
+                                  <Chip
+                                    value={`# ${chamado.numeroSequencial}`}
+                                    className="text-[11px] py-1 px-2 mb-1 select-text"
+                                  />
+                                </div>
+
+                                <button
+                                  onClick={() => acaoAbrirChamado(chamado)}
+                                  className="flex flex-col justify-start normal-case text-sm font-normal bg-[#394152] text-white p-2 rounded-lg hover:bg-gray-600 max-h-[100px] overflow-y-auto custom-scrollbar w-full"
+                                >
+                                  <Typography variant="small">
+                                    <span className="font-bold">Cliente: </span>
+                                    {chamado.cliente.nome}
+                                  </Typography>
+                                  <div className="flex flex-start items-start gap-1">
+                                    <span className="font-bold">Titulo:</span>
+                                    <p className="whitespace-normal break-all text-start">
+                                      {chamado.titulo}
+                                    </p>
+                                  </div>
+                                </button>
+                              </div>
+                            ))
+                          ) : (
+                            <Typography
+                              variant="small"
+                              className="text-gray-500"
+                            >
+                              Nenhum chamado arquivado.
+                            </Typography>
+                          )
+                        ) : // Mostrar chamados não arquivados e não concluídos
+                        filtrarChamados(
+                            chamadosPorQuadro[quadro.id]?.filter(
+                              (chamado) =>
+                                !chamado.arquivado &&
+                                chamado.status !== "CONCLUIDO"
+                            ),
+                            quadro.id
+                          )?.length > 0 ? (
+                          filtrarChamados(
+                            chamadosPorQuadro[quadro.id]?.filter(
+                              (chamado) =>
+                                !chamado.arquivado &&
+                                chamado.status !== "CONCLUIDO"
+                            ),
+                            quadro.id
+                          ).map((chamado) => (
                             <div
                               key={chamado.numeroSequencial}
                               className="pt-1"
                             >
                               <div className="flex justify-between">
-                                <div className="flex gap-2">
+                                <div className="flex gap-1">
                                   <Chip
                                     value={formatarData(chamado.criadoEm)}
                                     className="text-[11px] py-1 px-2 mb-1 bg-blue-gray-600 text-white"
-                                  ></Chip>
+                                  />
+                                  {/* Mostrar o status do chamado */}
                                   {(() => {
                                     switch (chamado.status) {
                                       case "EM_ABERTO":
                                         return (
                                           <Chip
-                                            value={"Em Aberto"}
+                                            value="Em Aberto"
                                             className="text-[11px] py-1 px-2 mb-1 bg-green-800 normal-case"
                                           />
                                         );
                                       case "EM_ANALISE":
                                         return (
                                           <Chip
-                                            value={"Em Análise"}
+                                            value="Em Análise"
                                             className="text-[11px] py-1 px-2 mb-1 bg-yellow-900 normal-case"
-                                          />
-                                        );
-                                      case "EM_ESPERA":
-                                        return (
-                                          <Chip
-                                            value={"Em Espera"}
-                                            className="text-[11px] py-1 px-2 mb-1 bg-brown-500 normal-case"
                                           />
                                         );
                                       case "EM_ANDAMENTO":
                                         return (
                                           <Chip
-                                            value={"Em Andamento"}
+                                            value="Em Andamento"
                                             className="text-[11px] py-1 px-2 mb-1 bg-blue-600 normal-case"
-                                          />
-                                        );
-                                      case "CONCLUIDO":
-                                        return (
-                                          <Chip
-                                            value={"Concluído"}
-                                            className="text-[11px] py-1 px-2 mb-1 bg-green-500 normal-case"
                                           />
                                         );
                                       case "CANCELADO":
                                         return (
                                           <Chip
-                                            value={"Cancelado"}
+                                            value="Cancelado"
                                             className="text-[11px] py-1 px-2 mb-1 bg-red-600 normal-case"
                                           />
                                         );
@@ -407,11 +680,15 @@ const Setor: React.FC = () => {
                                         return null;
                                     }
                                   })()}
+                                <Chip
+                                    value={chamado.prioridade.nome}
+                                    className="text-[11px] py-1 px-2 mb-1 bg-blue-gray-600 text-white"
+                                  />
                                 </div>
                                 <Chip
                                   value={`# ${chamado.numeroSequencial}`}
                                   className="text-[11px] py-1 px-2 mb-1 select-text"
-                                ></Chip>
+                                />
                               </div>
 
                               <button
@@ -433,7 +710,7 @@ const Setor: React.FC = () => {
                           ))
                         ) : (
                           <Typography variant="small" className="text-gray-500">
-                            Nenhum chamado registrado.
+                            Nenhum chamado ativo.
                           </Typography>
                         )}
                       </CardBody>

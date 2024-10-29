@@ -29,7 +29,8 @@ import {
     Select,
     Option,
     List, ListItem, Chip,
-    ButtonGroup
+    ButtonGroup,
+    Tooltip 
 
   } from "@material-tailwind/react";
  
@@ -62,5 +63,6 @@ export {
   Select,
   Option,
   List, ListItem, Chip ,
-  ButtonGroup
+  ButtonGroup,
+  Tooltip 
 };

@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 export default function Home() {
   return (
     <main
@@ -7,7 +9,7 @@ export default function Home() {
       style={{ backgroundImage: "url('/images/GAES2.png')" }}
     >
       <div className="flex flex-col items-center justify-center relative w-full text-white text-center">
-        <img src="/images/LOGO2.png" alt="Logo" className="object-contain" />
+        <Image src="/images/LOGO2.png" alt="Logo" className="object-contain" width={100} height={100}/>
         <h1 className="text-4xl font-bold mt-8">
           GAES - Gerenciamento Avançado de Equipes de Suporte
         </h1>

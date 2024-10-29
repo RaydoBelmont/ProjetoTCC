@@ -291,12 +291,16 @@ export async function transferirChamado(idChamado: number, idQuadro: number) {
   }
 }
 
-export async function finalizarChamado(idChamado: number) {
+export async function finalizarChamado(idChamado: number, solucao: string) {
   try {
     const chamadoFinalizado = await prisma.chamado.update({
       where:{id:idChamado},
       data:{
         status: StatusEnum.CONCLUIDO,
+        solucao: solucao,
+        concluidoEm: new Date(),
+        arquivado: true,
+        arquivadoEm: new Date(),
       }
     })
 
@@ -304,6 +308,67 @@ export async function finalizarChamado(idChamado: number) {
   } catch (error) {
     console.error("Erro ao finalizar chamado em model:", error);
     throw new Error("Erro ao finalizar chamado em model");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function reabrirChamado(idChamado: number) {
+  try {
+    const chamadoReaberto = await prisma.chamado.update({
+      where: {id: idChamado},
+      data: {
+        status: StatusEnum.EM_ABERTO,
+        solucao: null,
+        concluidoEm: null,
+        arquivado: false,
+        arquivadoEm: null,
+      }
+    })
+    return chamadoReaberto ? true : false
+  } catch (error) {
+    console.error("Erro ao reabrir chamado em model:", error);
+    throw new Error("Erro ao reabrir chamado em model");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function arquivarChamado(idChamado: number) {
+  try {
+    const chamadoArquivado = await prisma.chamado.update({
+      where: { id: idChamado },
+      data: {
+        arquivado: true,
+        arquivadoEm: new Date(),
+      },
+    });
+    if (chamadoArquivado) {
+      return chamadoArquivado;
+    }
+  } catch (error) {
+    console.error("Erro ao arquivar chamado em model:", error);
+    throw new Error("Erro ao arquivar chamado em model");
+  } finally {
+    await prisma.$disconnect();
+  }
+}
+
+export async function desarquivarChamado(idChamado: number) {
+  try {
+    const chamadoDesarquivado = await prisma.chamado.update({
+      where: { id: idChamado },
+      data: {
+        arquivado: false,
+        arquivadoEm: null,
+      },
+    });
+    if (chamadoDesarquivado) {
+      return chamadoDesarquivado;
+    }
+  } catch (error) {
+    console.error("Erro ao desarquivar chamado em model:", error);
+    throw new Error("Erro ao desarquivar chamado em model");
   } finally {
     await prisma.$disconnect();
   }

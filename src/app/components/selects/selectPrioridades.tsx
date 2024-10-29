@@ -15,6 +15,7 @@ interface SelectPrioridadesProps {
   setorId: number;
   setarIdPrioridade: (idStatus: number) => void;
   valorInicial?: Prioridade;
+  isDisabled?: boolean
 }
 
 const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
@@ -23,6 +24,7 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
   setorId,
   setarIdPrioridade,
   valorInicial,
+  isDisabled = false
 }) => {
   const [prioridadeSelecionada, setPrioridadeSelecionada] =
     useState<Prioridade | null>(null);
@@ -122,8 +124,13 @@ const SelectPrioridades: React.FC<SelectPrioridadesProps> = ({
       <span className="text-white">Prioridade</span>
       <button
         ref={buttonRef}
-        onClick={() => setIsOpen((prev) => !prev)}
-        className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-indigo-500 text-white text-start"
+        onClick={() => !isDisabled && setIsOpen((prev) => !prev)} // Só abre se não estiver desativado
+        disabled={isDisabled} // Desabilita o botão
+        className={`w-full p-2 border rounded text-start focus:outline-none text-white ${
+          isDisabled
+            ? "cursor-not-allowed"
+            : "focus:ring-2 focus:ring-indigo-500"
+        }`}
       >
         {prioridadeSelecionada
           ? prioridadeSelecionada.nome

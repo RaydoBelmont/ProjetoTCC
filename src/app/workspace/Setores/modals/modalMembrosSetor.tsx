@@ -43,20 +43,6 @@ export default function ModalGerenciarMembrosSetor(
   const [membrosFora, setMembrosFora] = useState<MembroWorkspace[]>([]);
   const [membrosSetor, setMembrosSetor] = useState<MembroSetor[]>([]);
 
-  const getMembrosWorkspace = async () => {
-    const response = await buscaMembrosWorkspace(props.workspaceId);
-    return response;
-  };
-
-  const getDadosSetor = async () => {
-    try {
-      const dadosSetor = await buscaSetor(props.idSetor);
-      return dadosSetor;
-    } catch (error) {
-      console.log("Erro ao buscar dados do setor: ", error);
-    }
-  };
-
   const moverParaSetor = async (idMembro: number) => {
   
       try {
@@ -122,30 +108,29 @@ export default function ModalGerenciarMembrosSetor(
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const membrosWorkspace = await getMembrosWorkspace();
-        const dadosSetor = await getDadosSetor();
-
+        const membrosWorkspace = await buscaMembrosWorkspace(props.workspaceId);
+        const dadosSetor = await buscaSetor(props.idSetor);
+  
         if (membrosWorkspace && dadosSetor) {
-          // Lista de membros que pertencem ao setor
           setMembrosSetor(dadosSetor.membros);
-
-          // Filtrar membros que não pertencem ao setor
+  
           const membrosSetorIds = dadosSetor.membros.map(
             (membro: MembroSetor) => membro.userId
           );
           const membrosForaDoSetor = membrosWorkspace.filter(
             (membro: Membro) => !membrosSetorIds.includes(membro.id)
           );
-
+  
           setMembrosFora(membrosForaDoSetor);
         }
       } catch (error) {
         console.log("Erro no useEffect: ", error);
       }
     };
-
+  
     fetchData();
-  }, []);
+  }, [props.workspaceId, props.idSetor]);
+  
 
   if (membrosSetor && membrosFora) {
     return (

@@ -85,7 +85,11 @@ model Chamado {
   clienteId        Int
   quadroId         Int
   workspaceId      Int             
-  numeroSequencial Int             
+  numeroSequencial Int   
+  solucao          String? 
+  concluidoEm      DateTime?   
+  arquivado        Boolean         @default(false)
+  arquivadoEm      DateTime?      
   cliente          Clientes        @relation(fields: [clienteId], references: [id])
   quadro           Quadro          @relation(fields: [quadroId], references: [id])
   users            ChamadoUser[]

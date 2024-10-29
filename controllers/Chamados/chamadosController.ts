@@ -6,7 +6,10 @@ import {
   removerMembro,
   buscaChamado,
   transferirChamado,
-  finalizarChamado
+  finalizarChamado,
+  reabrirChamado,
+  arquivarChamado,
+  desarquivarChamado
 } from "../../models/Chamados/chamados";
 
 import { StatusEnum } from "@prisma/client";
@@ -103,11 +106,38 @@ export const transfereChamado = async (idChamado: number, idQuadro: number) => {
   }
 }
 
-export const finalizaChamado = async (idChamado: number) => {
+export const finalizaChamado = async (idChamado: number, solucao: string) => {
   try {
-    const chamadoFinalizado = await finalizarChamado(idChamado);
+    const chamadoFinalizado = await finalizarChamado(idChamado, solucao);
     return chamadoFinalizado;
   } catch (error) {
     console.error("Erro ao finalizar chamado em Controller", error);
+  }
+}
+
+export const reabreChamado = async (idChamado: number) => {
+  try {
+    const chamadoReaberto = await reabrirChamado(idChamado);
+    return chamadoReaberto;
+  } catch (error) {
+    console.error("Erro ao reabrir chamado em Controller", error);
+  }
+}
+
+export const arquivaChamado = async (idChamado: number) => {
+  try {
+    const chamadoArquivado = await arquivarChamado(idChamado);
+    return chamadoArquivado;
+  } catch (error) {
+    console.error("Erro ao arquivar chamado em Controller", error);
+  }
+}
+
+export const desarquivaChamado = async (idChamado: number) => {
+  try {
+    const chamadoDesarquivado = await desarquivarChamado(idChamado);
+    return chamadoDesarquivado;
+  } catch (error) {
+    console.error("Erro ao desarquivar chamado em Controller", error);
   }
 }
