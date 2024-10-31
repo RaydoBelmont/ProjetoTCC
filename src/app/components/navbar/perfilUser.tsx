@@ -4,7 +4,11 @@ import Image from "next/image";
 import BotaoNotificacoes from "./botaoNotificacoes";
 import { Typography } from "@material-tailwind/react";
 
-export default function PerfilUser() {
+type perfilProps = { 
+  attListaWorkspace: (email: string) => void;
+}
+
+export default function PerfilUser(props: perfilProps) {
   const { data: session } = useSession();
 
   if (session && session.user) {
@@ -31,7 +35,9 @@ export default function PerfilUser() {
               <h2 className="text-lg font-semibold">{primeiroNome}</h2>
             </div>
           </div>
-          <BotaoNotificacoes />
+          <BotaoNotificacoes 
+          attListaWorkspace={props.attListaWorkspace}
+          />
         </div>
         <Typography variant="small" className="text-xs text-gray-500 mb-1">
           {session.user.email}

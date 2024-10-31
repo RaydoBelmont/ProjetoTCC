@@ -140,14 +140,14 @@ export default function RelChamadosPrioridadeResumido({
             : ""}
         </Text>
 
-        {prioridadesUnicas.map((prioridadeNome) => {
+        {prioridadesUnicas.map((prioridadeNome, index) => {
           const chamadosPorPrioridade = chamadosFiltrados.filter(
             (chamado) => chamado.prioridade.nome === prioridadeNome
           );
           if (chamadosPorPrioridade.length === 0) return null;
 
           return (
-            <View key={prioridadeNome}>
+            <View key={prioridadeNome}  break={index !== 0}>
               <Text style={styles.prioridadeTitle}>
                 Prioridade: {prioridadeNome}
               </Text>

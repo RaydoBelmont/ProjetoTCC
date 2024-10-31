@@ -71,7 +71,9 @@ const Navbar: React.FC = () => {
   return (
     <nav className="sticky top-0 z-10 flex flex-col justify-between bg-[#384052]  p-4 border-b border-gray-600 min-w-44 min-h-screen">
       <div className="flex flex-col gap-2">
-        <PerfilUser />
+        <PerfilUser
+        attListaWorkspace={listaWorkspaces}
+        />
         {session && session.user ? (
           <div className="border-b border-gray-400 my-4"></div>
         ) : (
@@ -95,7 +97,7 @@ const Navbar: React.FC = () => {
             <BotaoWorkspaces
               key={index}
               workspaces={workspaces}
-              setWorkspaces={setWorkspaces}
+              attListaWorkspace={listaWorkspaces}
               redirecionar={redirecionar}
             />
           ) : (

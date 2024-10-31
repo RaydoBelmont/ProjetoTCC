@@ -46,9 +46,9 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
   },
-  total: {
+    total: {
     marginTop: 20,
-    fontWeight: "bold",-
+    fontWeight: "bold",
     fontSize: 14,
     textAlign: "right",
   },

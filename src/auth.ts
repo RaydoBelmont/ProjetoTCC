@@ -1,7 +1,9 @@
-import NextAuth  from "next-auth";
+import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
+
+const prisma = global.prisma || new PrismaClient(); // Instância única no desenvolvimento
+if (process.env.NODE_ENV === "development") global.prisma = prisma;
 
 interface CustomToken {
   accessToken?: string;
@@ -9,108 +11,93 @@ interface CustomToken {
   expiresAt?: number;
 }
 
-// Definição da interface da sessão personalizada
 interface CustomSession {
   accessToken?: string;
   expiresAt?: number;
 }
 
-
-const authOptions  =  ({
+const authOptions = {
   providers: [
     GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-      authorization:
-        `https://accounts.google.com/o/oauth2/auth/authorize?response_type=code&prompt=login` ??
-        "",
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
   ],
   secret: process.env.NEXTAUTH_SECRET,
   callbacks: {
-
     async jwt({ token, account }) {
-      // Inicializa o token com informações da conta quando o usuário faz login
       if (account) {
-        (token as CustomToken).accessToken = account.access_token;
-        (token as CustomToken).refreshToken = account.refresh_token; // Se disponível
-        (token as CustomToken).expiresAt = account.expires_at;
+        token.accessToken = account.access_token;
+        token.refreshToken = account.refresh_token;
+        token.expiresAt = account.expires_at;
       }
 
-        // Se o token está expirado, renove o token usando o refresh token
-        if (Date.now() < ((token as CustomToken).expiresAt ?? 0) * 1000) {
-          return token;
-        }
-
-        const response = await fetch('https://oauth2.googleapis.com/token', {
-          method: 'POST',
-          body: new URLSearchParams({
-            grant_type: 'refresh_token',
-            refresh_token: (token as CustomToken).refreshToken ?? '',
-            client_id: process.env.GOOGLE_CLIENT_ID ?? "",
-            client_secret: process.env.GOOGLE_CLIENT_SECRET ?? "",
-          }),
-        });
-
-        const refreshedTokens = await response.json();
-
-        (token as CustomToken).accessToken = refreshedTokens.access_token;
-        (token as CustomToken).expiresAt = Math.floor(Date.now() / 1000) + refreshedTokens.expires_in;
-
-
+      if (token.expiresAt && Date.now() < token.expiresAt * 1000) {
         return token;
+      }
+
+      if (token.refreshToken) {
+        try {
+          const response = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+              client_id: process.env.GOOGLE_CLIENT_ID!,
+              client_secret: process.env.GOOGLE_CLIENT_SECRET!,
+              refresh_token: token.refreshToken,
+              grant_type: "refresh_token",
+            }).toString(),
+          });
+
+          if (!response.ok) throw new Error("Falha na atualização do token");
+
+          const refreshedTokens = await response.json();
+          token.accessToken = refreshedTokens.access_token;
+          token.expiresAt = Math.floor(Date.now() / 1000) + refreshedTokens.expires_in;
+        } catch (error) {
+          console.error("Erro ao atualizar o token:", error);
+          delete token.refreshToken;
+        }
+      }
+
+      return token;
     },
 
     async session({ session, token }) {
-      // Adiciona o token de acesso e a expiração ao objeto da sessão
-      const customToken = token as CustomToken;
-      (session as CustomSession).accessToken = customToken.accessToken;
-      (session as CustomSession).expiresAt = customToken.expiresAt;
-
+      session.accessToken = token.accessToken;
+      session.expiresAt = token.expiresAt;
       return session;
     },
 
-
-
-    async signIn({ user, account, profile, email, credentials }) {
-        
+    async signIn({ user, profile }) {
       try {
-        const emailAddress = profile?.email || email?.email;
-        const usuarioExiste = await prisma.user.findUnique({
-          where: { email: emailAddress },
-        });
-        if (usuarioExiste) {
-          return true;
-        } else {
-          try {
-            const novoUsuario = await prisma.user.create({
-              data: {
-                nome: profile?.name ? profile.name : "",
-                email: profile?.email ? profile.email : "",
-              },
-            });
-            if (novoUsuario) {
-              return true
-            } else {
-              return false
-            }
-          } catch (error) {
-            console.log(error);
-          }
+        const email = profile?.email;
+        if (!email) throw new Error("E-mail não encontrado no perfil");
+
+        const usuarioExiste = await prisma.user.findUnique({ where: { email } });
+
+        if (!usuarioExiste) {
+          await prisma.user.create({
+            data: {
+              nome: profile.name || "",
+              email,
+            },
+          });
         }
-        return true
+        return true;
       } catch (error) {
-        console.log(error);
+        console.error("Erro ao verificar ou criar o usuário:", error);
+        return false;
       }
-      return true
     },
-    async redirect({ url, baseUrl }) {
+
+    async redirect({ baseUrl }) {
       return baseUrl;
     },
   },
   pages: {
-    signIn: '/login',  // Redireciona para a página personalizada de login
+    signIn: "/login",
   },
-});
+};
 
-export default authOptions
+export default authOptions;

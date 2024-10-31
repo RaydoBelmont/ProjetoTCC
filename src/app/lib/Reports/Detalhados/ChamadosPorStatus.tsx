@@ -180,6 +180,12 @@ export default function RelChamadosPorStatus({
                           Nª: {chamado.numeroSequencial}
                         </Text>
                       </View>
+                      {chamado.concluidoEm && (
+                        <Text style={{ marginBottom: 5 }}>
+                          Data de conclusão:{" "}
+                          {new Date(chamado.concluidoEm).toLocaleDateString()}
+                        </Text>
+                      )}
                       <Text style={styles.chamadoTitle}>
                         Título: {chamado.titulo.split("")}
                       </Text>

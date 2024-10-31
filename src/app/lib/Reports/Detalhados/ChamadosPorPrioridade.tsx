@@ -157,14 +157,15 @@ export default function RelChamadosPorPrioridade({
           </Text>
 
           {/* Itera sobre as prioridades e, em seguida, pelos quadros */}
-          {prioridadesUnicas.map((prioridadeNome) => {
+          {prioridadesUnicas.map((prioridadeNome, index) => {
             const chamadosPorPrioridade = chamadosAgrupadosPorPrioridade.filter(
               (chamado) => chamado.prioridade.nome === prioridadeNome
             );
             if (chamadosPorPrioridade.length === 0) return null;
 
             return (
-              <View key={prioridadeNome}>
+              // Aplica o break apenas se não for o primeiro elemento
+              <View key={prioridadeNome} break={index !== 0}>
                 <Text style={styles.prioridadeTitle}>
                   Prioridade: {prioridadeNome}
                 </Text>
@@ -190,11 +191,15 @@ export default function RelChamadosPorPrioridade({
                       </View>
 
                       {/* Exibe os chamados dentro do quadro */}
-                      {chamadosDoQuadro.map((chamado) => {
+                      {chamadosDoQuadro.map((chamado, index) => {
                         totalChamados++;
 
                         return (
-                          <View key={chamado.id} style={styles.chamado}>
+                          <View
+                            key={chamado.id}
+                            style={styles.chamado}
+                            break={index !== 0}
+                          >
                             <View style={styles.tituloChamadoContainer}>
                               <Text>
                                 Data:{" "}
@@ -206,6 +211,14 @@ export default function RelChamadosPorPrioridade({
                                 Nª: {chamado.numeroSequencial}
                               </Text>
                             </View>
+                            {chamado.concluidoEm && (
+                              <Text style={{ marginBottom: 5 }}>
+                                Data de conclusão:{" "}
+                                {new Date(
+                                  chamado.concluidoEm
+                                ).toLocaleDateString()}
+                              </Text>
+                            )}
                             <Text style={styles.chamadoTitle}>
                               Título: {chamado.titulo.split("")}
                             </Text>
@@ -220,7 +233,7 @@ export default function RelChamadosPorPrioridade({
                             </Text>
                             {chamado.solucao && (
                               <Text style={{ fontSize: 12, marginTop: 2 }}>
-                                Solução: {chamado.solucao.split("")}
+                                Solução: {chamado.solucao}
                               </Text>
                             )}
                             <View style={styles.line} />

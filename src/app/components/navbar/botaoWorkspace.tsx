@@ -1,22 +1,22 @@
 import React, { useRef, useState } from "react";
 import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
-import BotaoModalWorkspace from "../botoes_modal/btnModalCadWork";
 import { useClickAway } from "react-use";
 import { workspace } from "./navbar";
-import { motion } from "framer-motion";
+import ModalCadWork from "../modals/cadWorkspace/modalCadWork";
 
 interface BotaoWorkspacesProps {
   workspaces: workspace[];
-  setWorkspaces: React.Dispatch<React.SetStateAction<workspace[]>>;
+  attListaWorkspace: (email: string) => void;
   redirecionar: (id: number, nome: string) => void;
 }
 
 const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
   workspaces,
-  setWorkspaces,
   redirecionar,
+  attListaWorkspace,
 }) => {
   const [showOptions, setShowOptions] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const refBtnWorkspace = useRef(null);
 
   useClickAway(refBtnWorkspace, () => {
@@ -34,7 +34,7 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
     <div className="relative flex" ref={refBtnWorkspace}>
       <button
         onClick={() => setShowOptions(!showOptions)}
-        className="text-white text-sm text-left py-2 px-3 w-full rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700 "
+        className="text-white text-sm text-left py-2 px-3 w-full rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700"
       >
         Workspaces
         {showOptions ? (
@@ -44,17 +44,11 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
         )}
       </button>
       {showOptions && (
-        <motion.div
-          className="absolute right-0 top-0 mt-10 bg-[#212938] py-2 px-3 rounded-md shadow-2xl"
-          initial={{ scale: 0.95, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
+        <div className="absolute right-0 top-0 mt-10 bg-[#212938] py-2 px-3 rounded-md shadow-2xl">
           <div className="text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700">
-            <BotaoModalWorkspace
-              areaDeTrabalho={workspaces}
-              setWorkspace={setWorkspaces}
-            />
+            <button className="py-2 px-3" onClick={() => setIsModalOpen(true)}>
+              + Nova Workspace
+            </button>
           </div>
           {workspaces.map((workspace, index) => (
             <div
@@ -69,7 +63,15 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
               </button>
             </div>
           ))}
-        </motion.div>
+        </div>
+      )}
+
+      {isModalOpen && (
+        <ModalCadWork
+          isOpen={isModalOpen}
+          setModalOpen={() => setIsModalOpen(!isModalOpen)}
+          attListaWorkspace={attListaWorkspace}
+        />
       )}
     </div>
   );

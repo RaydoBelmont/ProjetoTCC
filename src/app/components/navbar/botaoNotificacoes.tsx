@@ -13,6 +13,11 @@ import { arquivarNotificacao } from "@/app/lib/NotificacoesFunctions/libArquivar
 import { buscaIdUserPorEmail } from "@/app/lib/UserFunctions/buscaIDuser";
 import { inserirMembroNaWorkspace } from "@/app/lib/WorkspaceFunctions/Membros/libInsereMembroNaWorkspace";
 import { useSession } from "next-auth/react";
+import { libAceitarNotificacao } from "@/app/lib/NotificacoesFunctions/libMarcaAceitoNotificacao";
+
+type notificacoesProps = {
+  attListaWorkspace: (email: string) => void;
+};
 
 type Notificacao = {
   id: number;
@@ -26,15 +31,24 @@ type Notificacao = {
   aceito: boolean;
 };
 
-export default function BotaoNotificacoes() {
+export default function BotaoNotificacoes(props: notificacoesProps) {
   const [totalNotificacoes, setTotalNotificacoes] = useState<number>(0);
   const [notificacoes, setNotificacoes] = useState<Notificacao[]>([]);
   const { data: session } = useSession();
 
   const ingressarNaWorkspace = async (notificacao: Notificacao) => {
     const userId = await buscaIdUserPorEmail(session?.user?.email);
-    console.log(userId, notificacao.workspaceId);
-    inserirMembroNaWorkspace(userId, notificacao.workspaceId);
+    await inserirMembroNaWorkspace(userId, notificacao.workspaceId);
+    await libAceitarNotificacao(notificacao.id, true);
+    props.attListaWorkspace(session?.user?.email);
+    if (notificacao.lido === false) {
+      marcarComoLido(notificacao.id, true);
+    }
+    marcarComoArquivado(notificacao.id, true);
+  };
+
+  const recusarConvite = async (notificacao: Notificacao) => {
+    await libAceitarNotificacao(notificacao.id, false);
     if (notificacao.lido === false) {
       marcarComoLido(notificacao.id, true);
     }
@@ -73,9 +87,6 @@ export default function BotaoNotificacoes() {
 
   useEffect(() => {
     atualizarNotificacoes();
-    // Intervalo para buscar novas notificações a cada 30 segundos (ou a cada tempo que preferir)
-    // const interval = setInterval(atualizarNotificacoes, 30000);
-    // return () => clearInterval(interval); // Limpa o intervalo ao desmontar
   }, [atualizarNotificacoes]);
 
   // Função para formatar a data no estilo DD/MM/AAAA - HH:MM
@@ -203,7 +214,12 @@ export default function BotaoNotificacoes() {
                         >
                           Aceitar
                         </Button>
-                        <Button color="red" size="sm" variant="gradient">
+                        <Button
+                          color="red"
+                          size="sm"
+                          variant="gradient"
+                          onClick={() => recusarConvite(notificacao)}
+                        >
                           Recusar
                         </Button>
                       </div>
