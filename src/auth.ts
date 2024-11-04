@@ -2,19 +2,8 @@ import NextAuth from "next-auth";
 import GoogleProvider from "next-auth/providers/google";
 import { PrismaClient } from "@prisma/client";
 
-const prisma = global.prisma || new PrismaClient(); // Instância única no desenvolvimento
+const prisma = global.prisma || new PrismaClient();
 if (process.env.NODE_ENV === "development") global.prisma = prisma;
-
-interface CustomToken {
-  accessToken?: string;
-  refreshToken?: string;
-  expiresAt?: number;
-}
-
-interface CustomSession {
-  accessToken?: string;
-  expiresAt?: number;
-}
 
 const authOptions = {
   providers: [
@@ -53,7 +42,8 @@ const authOptions = {
 
           const refreshedTokens = await response.json();
           token.accessToken = refreshedTokens.access_token;
-          token.expiresAt = Math.floor(Date.now() / 1000) + refreshedTokens.expires_in;
+          token.expiresAt =
+            Math.floor(Date.now() / 1000) + refreshedTokens.expires_in;
         } catch (error) {
           console.error("Erro ao atualizar o token:", error);
           delete token.refreshToken;
@@ -69,7 +59,7 @@ const authOptions = {
       return session;
     },
 
-    async signIn({ user, profile }) {
+    async signIn({ user, account, profile }) {
       try {
         const email = profile?.email;
         if (!email) throw new Error("E-mail não encontrado no perfil");
@@ -79,7 +69,7 @@ const authOptions = {
         if (!usuarioExiste) {
           await prisma.user.create({
             data: {
-              nome: profile.name || "",
+              nome: profile?.name || "",
               email,
             },
           });

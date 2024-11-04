@@ -161,11 +161,31 @@ export const buscaChamado = async (chamadoId: number) => {
 
 export const alterarChamado = async (
   idChamado: number,
+  novoTitulo?: string,
   NovoStatus?: StatusEnum,
   idNovaPrioridade?: number,
   novaDescricao?: string,
   idNovoCliente?: number,
 ) => {
+
+  if(novoTitulo){
+    try {
+      const chamado = await prisma.chamado.update({
+        where: { id: idChamado },
+        data: {
+          titulo: novoTitulo,
+        },
+      });
+      return chamado;
+    } catch (err) {
+      console.error("Erro ao alterar titulo do chamado:", err);
+      throw new Error("Erro ao alterar titulo do chamado");
+    } finally {
+      await prisma.$disconnect();
+    }
+  }
+
+
   if(NovoStatus){
     try {
       const chamado = await prisma.chamado.update({

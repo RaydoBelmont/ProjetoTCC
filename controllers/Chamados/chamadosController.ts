@@ -50,6 +50,7 @@ export const insereChamado = async (
 
 export const alteraChamado = async (
   idChamdo: number,
+  novoTitulo?: string,
   NovoStatus?: StatusEnum,
   idNovaPrioridade?: number,
   novaDescricao?: string,
@@ -58,6 +59,7 @@ export const alteraChamado = async (
   try {
     const chamado = await alterarChamado(
       idChamdo,
+      novoTitulo,
       NovoStatus,
       idNovaPrioridade,
       novaDescricao,

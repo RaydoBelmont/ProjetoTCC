@@ -24,6 +24,7 @@ interface Props {
   listaQuadros: Quadro[];
   clientes: Cliente[];
   listaPrioridades: Prioridade[];
+  acaoAbrirChamado: (chamado: Chamado) => void
 }
 
 export default function NavbarSetor(props: Props) {
@@ -42,6 +43,10 @@ export default function NavbarSetor(props: Props) {
 
   // useRef para o dropdown
   const dropdownRef = useRef(null);
+
+  useClickAway(dropdownRef, () => {
+    setIsDropdownOpen(false);
+  });
 
   const acaoInserir = () => {
     props.setModalOpen();
@@ -163,6 +168,7 @@ export default function NavbarSetor(props: Props) {
           setModalOpen={() => setIsModalPesquisarOpen(false)}
           listaChamados={props.listaChamadosPorQuadro}
           listaQuadros={props.listaQuadros}
+          acaoAbrirChamado={props.acaoAbrirChamado}
         />
       )}
     </Navbar>

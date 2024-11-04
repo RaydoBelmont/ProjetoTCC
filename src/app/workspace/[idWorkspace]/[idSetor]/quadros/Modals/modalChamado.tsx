@@ -1,5 +1,5 @@
 "use client";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import {
   Dialog,
   Card,
@@ -10,9 +10,9 @@ import {
 import { IoClose } from "react-icons/io5";
 import { IoMdAdd, IoMdDoneAll } from "react-icons/io";
 import { IoIosArrowRoundForward } from "react-icons/io";
-import { FaInfoCircle } from "react-icons/fa";
+import { FaEdit, FaInfoCircle, FaSave } from "react-icons/fa";
 import { FaRegEnvelopeOpen } from "react-icons/fa6";
-import { RiArrowGoBackFill  } from "react-icons/ri";
+import { RiArrowGoBackFill } from "react-icons/ri";
 import { Chamado, Quadro } from "../../page";
 import { buscarClientes } from "@/app/lib/WorkspaceFunctions/Clientes/buscaClientesDaWorkspace";
 import { Cliente, Prioridade } from "../Modals/modalCadChamado";
@@ -72,6 +72,7 @@ export default function ModalChamado(props: propsModalChamado) {
   const [isOpenModalFinalizar, setIsOpenModalFinalizar] = useState(false);
   const [isOpenModalReabrir, setIsOpenModalReabrir] = useState(false);
 
+  const [titulo, setTitulo] = useState<string>("");
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [status, setStatus] = useState<string>(props.chamado.status);
@@ -203,11 +204,16 @@ export default function ModalChamado(props: propsModalChamado) {
     }
 
     const atualizacoes: {
+      novoTitulo?: string;
       novoStatus?: string;
       idNovaPrioridade?: number;
       novaDescricao?: string;
       idNovoCliente?: number;
     } = {};
+
+    if (props.chamado.titulo !== titulo) {
+      atualizacoes.novoTitulo = titulo;
+    }
 
     if (props.chamado.status !== status) {
       atualizacoes.novoStatus = status;
@@ -229,6 +235,7 @@ export default function ModalChamado(props: propsModalChamado) {
       try {
         const result = await updateChamado(
           props.chamado.id,
+          atualizacoes.novoTitulo,
           atualizacoes.novoStatus,
           atualizacoes.idNovaPrioridade,
           atualizacoes.novaDescricao,
@@ -237,6 +244,18 @@ export default function ModalChamado(props: propsModalChamado) {
 
         if (result) {
           const novoHistoricoPromises = [];
+
+          if (atualizacoes.novoTitulo) {
+            novoHistoricoPromises.push(
+              novoHistorico(
+                "Titulo",
+                "alterou o titulo",
+                String(props.chamado.titulo),
+                String(titulo)
+              )
+            );
+            setTitulo(atualizacoes.novoTitulo);
+          }
           if (atualizacoes.novoStatus) {
             novoHistoricoPromises.push(
               novoHistorico(
@@ -392,17 +411,21 @@ export default function ModalChamado(props: propsModalChamado) {
       setIdPrioridade(prioridadeSelecionado ? prioridadeSelecionado.id : null);
       setPrioridadeChamado(prioridadeSelecionado || null);
       setDescricao(props.chamado.descricao);
+      setTitulo(props.chamado.titulo);
+      setEditarTitulo(false);
     }
   }, [
     props.isOpen,
     clientes,
     listaDePrioridades,
+    props.chamado.titulo,
     props.chamado.clienteId,
     props.chamado.status,
     props.chamado.prioridadeId,
   ]);
 
   useEffect(() => {
+    setListaMembrosChamado([]);
     const fetchData = async () => {
       if (props.isOpen) {
         try {
@@ -416,7 +439,9 @@ export default function ModalChamado(props: propsModalChamado) {
     };
 
     fetchData();
-  }, [props.chamado, props.isOpen]);
+  }, [props.chamado]);
+
+  const [editarTitulo, setEditarTitulo] = useState(false);
 
   return (
     <Dialog
@@ -437,13 +462,27 @@ export default function ModalChamado(props: propsModalChamado) {
           {/* Lado esquerdo - Dados principais */}
           <CardBody className="flex flex-col gap-4 w-3/4">
             <div className="flex flex-row justify-between">
-              <Typography
-                variant="h4"
-                color="white"
-                className="whitespace-normal break-all text-start"
-              >
-                {props.chamado.titulo}
-              </Typography>
+              <div className="flex gap-2 items-center w-full pr-2">
+                <strong className="text-white font-bold">Titulo: </strong>
+                {editarTitulo ? (
+                  <input
+                    value={titulo}
+                    onChange={(e) => setTitulo(e.target.value)}
+                    className="w-full bg-transparent rounded border-white text-white break-all text-start p-1"
+                    autoFocus={true}
+                  />
+                ) : (
+                  <strong className="text-white font-bold w-full p-1  break-all text-start">
+                    {titulo}
+                  </strong>
+                )}
+                <button
+                  onClick={() => setEditarTitulo(!editarTitulo)}
+                  className="text-white bg-gray-800 p-1 rounded"
+                >
+                  {editarTitulo ? <FaSave /> : <FaEdit />}
+                </button>
+              </div>
               <Typography
                 variant="h5"
                 color="white"
@@ -590,7 +629,9 @@ export default function ModalChamado(props: propsModalChamado) {
                             <strong>
                               <IoIosArrowRoundForward size={20} />
                             </strong>
-                            <strong className="font-bold">{item.valorNovo}.</strong>
+                            <strong className="font-bold">
+                              {item.valorNovo}.
+                            </strong>
                           </strong>
                         ) : (
                           <strong className="flex gap-1 items-center">
@@ -625,7 +666,6 @@ export default function ModalChamado(props: propsModalChamado) {
 
           {/* Lado direito - Membros e botão de adicionar membros */}
           <div className="bg-[#394152] p-4 rounded-r w-[25%] max-lg:w-[30%]">
-
             <div className="flex justify-end text-gray-500 flex-col items-end">
               <button onClick={acaoBotaoCancelar}>
                 <IoClose size={25} />
@@ -671,7 +711,7 @@ export default function ModalChamado(props: propsModalChamado) {
                   onClick={acaoReabrirChamado}
                   className="flex items-center justify-start gap-4 bg-white text-black text-sm  font-semibold py-2 px-4 rounded hover:bg-gray-200 transition-all duration-300 ease-in-out"
                 >
-                  <RiArrowGoBackFill  size={20} />
+                  <RiArrowGoBackFill size={20} />
                   Reabrir
                 </button>
               ) : (
@@ -684,8 +724,6 @@ export default function ModalChamado(props: propsModalChamado) {
                   Concluir
                 </button>
               )}
-
-              
             </div>
 
             <div className="flex justify-between items-center pt-8 ">
@@ -707,26 +745,28 @@ export default function ModalChamado(props: propsModalChamado) {
               </button>
             </div>
             <div className="my-4 space-y-2 max-h-[200px] overflow-y-auto custom-scrollbar border rounded p-1.5 border-gray-600">
-              {listaMembrosChamado.map((member, index) => (
-                <div key={index} className="w-full">
-                  <span className="flex items-center justify-between text-sm text-white bg-black rounded py-1 px-2">
-                    {member.user.nome}{" "}
-                    <button
-                      onClick={() => removerMembroDoChamado(member.user.id)}
-                      className={`
-                        ${
+              {listaMembrosChamado.length === 0 ? (
+                <p className="text-white">Carregando...</p>
+              ) : (
+                listaMembrosChamado.map((member, index) => (
+                  <div key={index} className="w-full">
+                    <span className="flex items-center justify-between text-sm text-white bg-black rounded py-1 px-2">
+                      {member.user.nome}{" "}
+                      <button
+                        onClick={() => removerMembroDoChamado(member.user.id)}
+                        className={`${
                           props.chamado.solucao
                             ? "cursor-not-allowed"
                             : "hover:bg-gray-600"
-                        }
-                        ml-1 rounded p-0.5`}
-                      disabled={props.chamado.solucao ? true : false}
-                    >
-                      <IoClose />
-                    </button>
-                  </span>
-                </div>
-              ))}
+                        } ml-1 rounded p-0.5`}
+                        disabled={props.chamado.solucao ? true : false}
+                      >
+                        <IoClose />
+                      </button>
+                    </span>
+                  </div>
+                ))
+              )}
             </div>
 
             <div className="flex flex-col gap-4">

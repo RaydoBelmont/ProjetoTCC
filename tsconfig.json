@@ -21,6 +21,6 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/users/route.ts", "jest.setup.js", "jest.setup.js", "jest.config.js", "jest.config.js", "src/app/api/auth/[...nextauth]/route.js", "src/app/page.jsx", "src/app/workspace/[idWorkspace]/Clientes/Botões/botaoDialogo.tsx"],
+  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts", "src/app/api/users/route.ts", "jest.config.js", "src/app/api/auth/[...nextauth]/route.js", "src/app/page.jsx", "src/app/workspace/[idWorkspace]/Clientes/Botões/botaoDialogo.tsx"],
   "exclude": ["node_modules"]
 }

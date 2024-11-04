@@ -143,6 +143,7 @@ export async function PATCH(request: NextRequest) {
   const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
 
   const idChamado = Number(decryptedData.idChamado);
+  const novoTitulo = decryptedData.novoTitulo;
   const statusString = decryptedData.status;
   const idNovaPrioridade = Number(decryptedData.idNovaPrioridade);
   const novaDescricao = decryptedData.novaDescricao;
@@ -164,11 +165,12 @@ export async function PATCH(request: NextRequest) {
 
 
 
-  if (statusString || idNovaPrioridade || novaDescricao || idNovoCliente) {
+  if (novoTitulo || statusString || idNovaPrioridade || novaDescricao || idNovoCliente) {
     try {
       const status = obterStatusEnum(statusString);
       const chamadoAlterado = await alteraChamado(
         idChamado,
+        novoTitulo,
         status,
         idNovaPrioridade,
         novaDescricao,

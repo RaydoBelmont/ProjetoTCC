@@ -1,23 +1,27 @@
 import CryptoJS from "crypto-js";
 const secretKey = String(process.env.NEXT_PUBLIC_CHAVE_CRIPTO);
 
-export const updateChamado = async (  idChamado: number,
-    status?: string,
-    idNovaPrioridade?: number,
-    novaDescricao?: string,
-    idNovoCliente?: number,
-    idNovoMembro?: number,
-    idMembroRemover?: number) => {
-  
+export const updateChamado = async (
+  idChamado: number,
+  novoTitulo?: string,
+  status?: string,
+  idNovaPrioridade?: number,
+  novaDescricao?: string,
+  idNovoCliente?: number,
+  idNovoMembro?: number,
+  idMembroRemover?: number
+) => {
   const encryptedData = CryptoJS.AES.encrypt(
-    JSON.stringify({idChamado,
-        status,
-        idNovaPrioridade,
-        novaDescricao,
-        idNovoCliente,
-        idNovoMembro,
-        idMembroRemover,
-        }),
+    JSON.stringify({
+      idChamado,
+      status,
+      novoTitulo,
+      idNovaPrioridade,
+      novaDescricao,
+      idNovoCliente,
+      idNovoMembro,
+      idMembroRemover,
+    }),
     secretKey
   ).toString();
 
@@ -28,7 +32,7 @@ export const updateChamado = async (  idChamado: number,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        data: encryptedData
+        data: encryptedData,
       }),
     });
 
@@ -40,13 +44,13 @@ export const updateChamado = async (  idChamado: number,
       return null;
     }
   } catch (error) {
-    console.error('Erro ao inserir chamado:', error);
-      return null;
+    console.error("Erro ao inserir chamado:", error);
+    return null;
   }
 };
 
 export const transferirChamado = async (
-  idChamado: number, 
+  idChamado: number,
   idQuadroTransferir: number
 ) => {
   const encryptedData = CryptoJS.AES.encrypt(
@@ -82,12 +86,12 @@ export const transferirChamado = async (
 };
 
 export const finalizarChamado = async (
-  idChamado: number, 
+  idChamado: number,
 
   solucao: string
 ) => {
   const encryptedData = CryptoJS.AES.encrypt(
-    JSON.stringify({ idChamado,solucao}),
+    JSON.stringify({ idChamado, solucao }),
     secretKey
   ).toString();
 
@@ -118,12 +122,9 @@ export const finalizarChamado = async (
   }
 };
 
-export const reabrirChamado = async (
-  idChamado: number, 
-  reabrir: boolean
-) => {
+export const reabrirChamado = async (idChamado: number, reabrir: boolean) => {
   const encryptedData = CryptoJS.AES.encrypt(
-    JSON.stringify({ idChamado,reabrir}),
+    JSON.stringify({ idChamado, reabrir }),
     secretKey
   ).toString();
 
@@ -154,11 +155,9 @@ export const reabrirChamado = async (
   }
 };
 
-export const arquivarChamado = async (
-  idChamado: number, 
-) => {
+export const arquivarChamado = async (idChamado: number) => {
   const encryptedData = CryptoJS.AES.encrypt(
-    JSON.stringify({ idChamado,arquivaDesarquiva: "ARQUIVAR"}),
+    JSON.stringify({ idChamado, arquivaDesarquiva: "ARQUIVAR" }),
     secretKey
   ).toString();
 
@@ -189,11 +188,9 @@ export const arquivarChamado = async (
   }
 };
 
-export const desarquivarChamado = async (
-  idChamado: number, 
-) => {
+export const desarquivarChamado = async (idChamado: number) => {
   const encryptedData = CryptoJS.AES.encrypt(
-    JSON.stringify({ idChamado,arquivaDesarquiva: "DESARQUIVAR"}),
+    JSON.stringify({ idChamado, arquivaDesarquiva: "DESARQUIVAR" }),
     secretKey
   ).toString();
 

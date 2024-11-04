@@ -412,6 +412,7 @@ const Setor: React.FC = () => {
             listaQuadros={quadros}
             clientes={listaClientes}
             listaPrioridades={listaDePrioridades}
+            acaoAbrirChamado={acaoAbrirChamado}
           />
           <Typography variant="h3" className="pb-8">
             {setor ? "Quadros do " + setor.nome : ""}

@@ -2,11 +2,11 @@ import { verificaUsuarioEWorkspace } from "../../../../../controllers/Workspace/
 import CryptoJS from "crypto-js";
 import { NextRequest, NextResponse } from "next/server";
 
-export async function GET(request: NextRequest) {
+export async function POST(request: NextRequest) {
   try {
-    // Obter e verificar se "data" está presente nos parâmetros de consulta
-    const data = request.nextUrl.searchParams.get("data");
-    
+    // Obter e verificar se "data" está presente no corpo da requisição
+    const { data } = await request.json();
+
     if (!data) {
       return NextResponse.json({ error: "Parâmetro 'data' ausente" }, { status: 400 });
     }
@@ -20,15 +20,12 @@ export async function GET(request: NextRequest) {
     const userEmail = decryptedData?.email;
     const idWorkspace = Number(decryptedData?.idWorkspace);
 
-    // Verificar se os dados descriptografados são válidos
     if (!userEmail || !idWorkspace) {
       return NextResponse.json({ error: "Dados inválidos" }, { status: 400 });
     }
 
-    // Chamar a função de verificação
     const isUserInWorkspace = await verificaUsuarioEWorkspace(userEmail, idWorkspace);
 
-    // Retornar a resposta apropriada
     if (isUserInWorkspace) {
       return NextResponse.json({ belongs: true }, { status: 200 });
     } else {
@@ -36,7 +33,6 @@ export async function GET(request: NextRequest) {
     }
 
   } catch (error) {
-    // Log do erro e resposta genérica
     console.error("Erro ao verificar usuário API:", error);
     return NextResponse.json({ error: "Erro interno no servidor" }, { status: 500 });
   }

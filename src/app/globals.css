@@ -65,6 +65,7 @@ select {
   background-color: #202938; /* Cor de fundo da barra de rolagem */
   border-radius: 10px; /* Arredondando as bordas da barra */
   
+  
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
