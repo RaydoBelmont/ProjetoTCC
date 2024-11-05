@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "type": "module",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "dependencies": {
     "@material-tailwind/react": "^2.1.9",
@@ -28,8 +29,9 @@
   },
   "devDependencies": {
     "@babel/preset-typescript": "^7.26.0",
-    "@testing-library/jest-dom": "^6.4.5",
-    "@testing-library/react": "14.0.0",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.0.1",
     "@testing-library/user-event": "^14.5.2",
     "@types/crypto-js": "^4.2.2",
     "@types/jest": "^29.5.14",
@@ -46,6 +48,7 @@
     "prisma": "^5.18.0",
     "tailwindcss": "^3.3.0",
     "ts-jest": "^29.1.4",
+    "ts-node": "^10.9.2",
     "typescript": "^5"
   }
 }

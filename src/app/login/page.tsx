@@ -1,4 +1,3 @@
-// src/app/login/page.tsx
 "use client";
 
 import { signIn } from "next-auth/react";
@@ -28,7 +27,7 @@ export default function LoginPage() {
               : "bg-blue-500 hover:bg-blue-600"
           } transition-colors duration-300`}
         >
-          {loading ? "Loading..." : "Fazer login com Google"}
+          Fazer login com Google
         </button>
       </div>
     </main>
