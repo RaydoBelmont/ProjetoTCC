@@ -9,6 +9,7 @@ import { useRouter } from "next/navigation";
 import CryptoJS from "crypto-js";
 import PerfilUser from "./perfilUser";
 import Image from "next/image";
+import { useAppContext } from "../../../context/AppContext";
 
 export interface workspace {
   id: number;
@@ -18,6 +19,7 @@ export interface workspace {
 
 const Navbar: React.FC = () => {
   const { data: session } = useSession();
+  const { workspacesContext, setWorkspacesContext } = useAppContext();
   const [showOptions, setShowOptions] = useState(false);
   const refBtnWorkspace = useRef(null);
   const [workspaces, setWorkspaces] = useState<workspace[]>([]);
@@ -40,6 +42,7 @@ const Navbar: React.FC = () => {
       const response = await fetch("/api/workspace?email=" + email);
       const data = await response.json();
       if (data && Array.isArray(data)) {
+        setWorkspacesContext(data)
         setWorkspaces(data);
       } else {
         console.error("Erro: data.workspaces é undefined ou não é um array");

@@ -1,10 +1,13 @@
+// teste1/src/app/layout.tsx
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
 import Navbar from "./components/navbar/navbar";
 import Providers from "./components/Providers";
-const inter = Inter({ subsets: ["latin"] });
+import { AppProvider } from "../context/AppContext";
 
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -19,15 +22,15 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Providers>
-          <div className="flex w-full">
-            <div className="min-w-[200px]">
-              <Navbar />
+        <Providers> {/* Agora o SessionProvider envolve toda a árvore */}
+          <AppProvider>
+            <div className="flex w-full">
+              <div className="min-w-[200px]">
+                <Navbar />
+              </div>
+              <div className="w-full">{children}</div>
             </div>
-            <div className="w-full">
-              {children}
-            </div>
-          </div>
+          </AppProvider>
         </Providers>
       </body>
     </html>

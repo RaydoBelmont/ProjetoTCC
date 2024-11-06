@@ -7,9 +7,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
-    setLoading(true);
     await signIn("google");
-    setLoading(false);
   };
 
   return (
