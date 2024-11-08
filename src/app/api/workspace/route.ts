@@ -3,6 +3,7 @@ import {
   listarWorkspacesPorUser,
   verificaAdm,
   buscaNomeWorkspace,
+  editarWorkspace
 } from "../../../../controllers/Workspace/workspaceController";
 import { NextRequest, NextResponse } from "next/server";
 
@@ -74,3 +75,19 @@ export async function GET(request: NextRequest) {
     }
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  const data = await request.json();
+  const nome = data.nome;
+  const idWorkspace = Number(data.idWorkspace);
+
+  try {
+    const workspace = await editarWorkspace(nome, idWorkspace);
+    return NextResponse.json(workspace, { status: 200 });
+  } catch (error) {
+    return NextResponse.json(
+      { error: "Ocorreu um erro ao editar a workspace." },
+      { status: 500 }
+    );
+  }
+} 

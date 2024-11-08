@@ -11,7 +11,6 @@ export const createWorkspace = async (nome: string, userEmail: string) => {
       data: {
         nome,
         users: {
-          // Relaciona o usuário à nova workspace
           create: {
             userId,
             isAdmin: true,
@@ -100,7 +99,6 @@ export const checkAdminStatus = async (
       throw new Error("Usuário não encontrado ou não é um administrador.");
     } else return response;
   } catch (error) {
-    // Tratamento de erro
     console.error("Erro ao obter as Admin do usuário:", error);
   }
 };
@@ -108,17 +106,14 @@ export const checkAdminStatus = async (
 
 export const verificaUsuarioComWorkspace = async (email: string, idWorkspace: number) => {
   try {
-    // Buscar o usuário com base no e-mail
     const user = await prisma.user.findUnique({
       where: { email: email },
     });
 
-    // Se o usuário não for encontrado, retorna false
     if (!user) {
       return false;
     }
 
-    // Verificar se o usuário pertence à workspace
     const verificacao = await prisma.workspaceUser.findUnique({
       where: {
         userId_workspaceId: {
@@ -131,8 +126,24 @@ export const verificaUsuarioComWorkspace = async (email: string, idWorkspace: nu
     return verificacao ? true : false;
   } catch (error) {
     console.error("Erro ao verificar se o usuário pertence à workspace MODEL:", error);
-    return false; // Retorna false em caso de erro
+    return false;
   }
 };
+
+export const editaWorkspace = async (nome: string, idWorkspace: number) => {
+  try {
+    const workspace = await prisma.workspace.update({
+      where:{id: idWorkspace},
+      data:{nome: nome}
+    })
+
+    if(workspace){
+      return workspace
+    }
+  } catch (error) {
+    console.error("Erro ao editar o nome da workspace MODEL:", error);
+    return false;
+  }
+}
 
 

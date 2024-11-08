@@ -3,7 +3,8 @@ import {
   createWorkspace,
   getWorkspacesByUserId,
   getWorkspaceName,
-  verificaUsuarioComWorkspace
+  verificaUsuarioComWorkspace,
+  editaWorkspace
 } from "../../models/Workspace/workspace";
 
 export const handleSaveWorkspace = async (nome: string, userEmail: string) => {
@@ -55,6 +56,18 @@ export const verificaUsuarioEWorkspace = async (
     return verificacao;
   } catch (error) {
     console.error("Erro ao verificar usuário em controller:", error);
+  }
+};
+
+export const editarWorkspace = async (
+  nome: string,
+  idWorkspace: number
+) => {
+  try {
+    const workspace = await editaWorkspace(nome, idWorkspace);
+    return workspace;
+  } catch (error) {
+    console.error("Erro ao editar workspace em controller:", error);
   }
 };
 

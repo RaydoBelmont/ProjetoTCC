@@ -3,6 +3,8 @@ import { IoIosArrowDown, IoIosArrowUp } from "react-icons/io";
 import { useClickAway } from "react-use";
 import { workspace } from "./navbar";
 import ModalCadWork from "../modals/cadWorkspace/modalCadWork";
+import ModalEditarWorkspace from "../modals/cadWorkspace/modalEditarWorkspace";
+import { FaEdit } from "react-icons/fa";
 
 interface BotaoWorkspacesProps {
   workspaces: workspace[];
@@ -17,6 +19,8 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
 }) => {
   const [showOptions, setShowOptions] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isModalEditarOpen, setIsModalEditarOpen] = useState(false);
+  const [idWorkspaceEditar, setIdWorkspaceEditar] = useState<number | null>();
   const refBtnWorkspace = useRef(null);
 
   useClickAway(refBtnWorkspace, () => {
@@ -29,6 +33,15 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
     redirecionar(id, nome);
     setShowOptions(false);
   };
+
+  const acaoBotaoEditar = (idWorkspace: number) => {
+    setIdWorkspaceEditar(idWorkspace)
+    setIsModalEditarOpen(true)
+  }
+
+  const acaoLimparIdEditar = () => {
+    setIdWorkspaceEditar(null)
+  }
 
   return (
     <div className="relative flex" ref={refBtnWorkspace}>
@@ -53,7 +66,7 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
           {workspaces.map((workspace, index) => (
             <div
               key={index}
-              className="text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700"
+              className="flex justify-between text-white text-sm rounded-md font-normal hover:bg-teal-500 focus:outline-none focus:bg-teal-700"
             >
               <button
                 className="w-full select-none py-2 px-3"
@@ -61,6 +74,9 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
               >
                 {workspace.nome}
               </button>
+              <button 
+              onClick={() => acaoBotaoEditar(workspace.id)}
+              className="p-1 h-[50%] mr-1 mt-2 hover:bg-black rounded"><FaEdit /></button>
             </div>
           ))}
         </div>
@@ -73,6 +89,17 @@ const BotaoWorkspaces: React.FC<BotaoWorkspacesProps> = ({
           attListaWorkspace={attListaWorkspace}
         />
       )}
+
+{isModalEditarOpen && (
+  <ModalEditarWorkspace 
+  isOpen={isModalEditarOpen}
+  setModalOpen={() => setIsModalEditarOpen(!isModalEditarOpen)}
+  attListaWorkspace={attListaWorkspace}
+  idWorkspace={idWorkspaceEditar}
+  setIdWorkspace={acaoLimparIdEditar}
+  />
+)}
+      
     </div>
   );
 };
