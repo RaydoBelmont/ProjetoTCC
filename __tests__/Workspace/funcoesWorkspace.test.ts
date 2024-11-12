@@ -1,7 +1,7 @@
 import { createWorkspace, getWorkspacesByUserId,
     getWorkspaceName,
     checkAdminStatus,
-    verificaUsuarioComWorkspace, } from "../../models/Workspace/workspace";
+    verificaUsuarioComWorkspace, editaWorkspace} from "../../models/Workspace/workspace";
 
 jest.mock("../../models/Workspace/workspace");
 
@@ -68,4 +68,14 @@ describe("Teste da função buscar pelas Workspaces(getWorkspaceName)", () => {
     });
   });
   
+  describe("Teste da função para editar nome da workspace", () => {
+    it("deve alterar o nome da workspace passando id e nome da workspace", async () => {
+      const workspace = { id: 1, nome: "teste"};
+
+      (editaWorkspace as jest.Mock).mockResolvedValue(workspace);
+  
+      const resultado = await editaWorkspace(workspace.nome, workspace.id);
+      expect(resultado).toEqual(workspace);
+    });
+  });
   
